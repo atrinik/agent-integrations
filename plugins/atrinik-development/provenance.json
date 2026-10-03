@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "original_objects_describe_import_provenance": true,
+    "current_files_may_include_documented_migration_edits": true,
+    "self_revision_pin": null
+  },
+  "imports": [
+    {
+      "name": "atrinik-wrapper-guidance",
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "476cf9dad436ce7b5fb89113c46014fcca3b8f77",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "skills": [
+        {
+          "source_path": ".agents/skills/atrinik-c-change",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-c-change",
+          "tree": "6f430ce2fa1c4509a3cdd2653fbb0cce3f878135"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-content-change",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-content-change",
+          "tree": "5cb5238c2fc6ffe82cec9d5e9f3bb986149e3c6e"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-github-governance",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-github-governance",
+          "tree": "4e06720488ab3826b783b968ed6906593b0cb6a1"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-guidance-maintenance",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-guidance-maintenance",
+          "tree": "521f447cd104cf2754b55bf48d7659186dd18e1c"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-issue-delivery",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-issue-delivery",
+          "tree": "0224b9fe878f37bcdf79688b3283da3200e4ca11"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-linux-gpu-qualification",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification",
+          "tree": "627c65a168e6f5505df75d15213184aee4ec9ffb"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-multi-repo-workspace",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-multi-repo-workspace",
+          "tree": "c6eccf5a5409a6f30e6ff8555e8e68c2f82d927d"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-program-delivery",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-program-delivery",
+          "tree": "ceb1c5d1c3e10282a60b2ed3a3b089635ef8430a"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-project-delivery",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-project-delivery",
+          "tree": "93f25b511e66ef3d5a605d49dc8faffb120cd4f3"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-protocol-change",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-protocol-change",
+          "tree": "dc4f7fde33c533e59e6d20b7c2f9e02c8ebd94e2"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-server-runtime",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-server-runtime",
+          "tree": "1c9f218c12099cfc17594e304c38a03d8929dd6b"
+        },
+        {
+          "source_path": ".agents/skills/atrinik-test-scenario",
+          "destination_path": "plugins/atrinik-development/skills/atrinik-test-scenario",
+          "tree": "2e362e551fb23fdd9077360874d8e2da61e93e26"
+        }
+      ],
+      "resources": [
+        {
+          "source_path": "docs/COORDINATOR_AUTH.md",
+          "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/COORDINATOR_AUTH.md",
+          "blob": "0428f230402d96c296f5450b30a25d085ecec6d2"
+        },
+        {
+          "source_path": "docs/LINUX_EXECUTION.md",
+          "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/LINUX_EXECUTION.md",
+          "blob": "2f3895a60935b691f9887ce043d4441c1e9a6212"
+        },
+        {
+          "source_path": "docs/RUNTIME_HANDOFF.md",
+          "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/RUNTIME_HANDOFF.md",
+          "blob": "4570f90a06fafe4ec0ed09d8f66709b84d48f9b2"
+        },
+        {
+          "source_path": "docs/SOURCE_DELIVERY.md",
+          "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/SOURCE_DELIVERY.md",
+          "blob": "7ce92690881272390efc68a16383f789cc873c8f"
+        },
+        {
+          "source_path": "docs/WINDOWS_GPU_PREFLIGHT.md",
+          "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/WINDOWS_GPU_PREFLIGHT.md",
+          "blob": "3f360fc5628f8a53e8a90805068946a2b99b3567"
+        }
+      ],
+      "migration_edits": [
+        "Relocated links to the five packaged public reference documents.",
+        "Replaced links to public upstream documents outside the package with immutable atrinik/atrinik revision URLs.",
+        "Omitted the operational delivery_ledger.py helper; guidance selects only the helper inside an exact verified accepted wrapper root, preferring scripts/delivery_ledger.py and falling back to the historical .agents/skills/atrinik-issue-delivery/scripts/delivery_ledger.py path for accepted older wrappers.",
+        "Updated package-relative routing and plugin presentation metadata without changing skill invocation policies."
+      ]
+    }
+  ],
+  "original_work": [
+    {
+      "path": "skills/classic-native-change",
+      "license": "MIT",
+      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or source code was copied or adapted.",
+      "public_interface_observations": [
+        {
+          "repository": "https://github.com/atrinik/classic.git",
+          "revision": "4998131ad2ae4c9680685fd87e2d85de1dc15fd9",
+          "paths": [
+            "AGENTS.md",
+            "client/AGENTS.md",
+            "client/CMakeLists.txt",
+            "server/AGENTS.md",
+            "server/CMakeLists.txt",
+            "libatrinik/AGENTS.md",
+            "libatrinik/CMakeLists.txt",
+            "protocol/CMakeLists.txt",
+            "protocol/tools/generate.py",
+            "editor/build.sh"
+          ]
+        },
+        {
+          "repository": "https://github.com/atrinik/atrinik.git",
+          "revision": "6b514ef4b096112152947df31b54a1f0937eae86",
+          "paths": [
+            "AGENTS.md",
+            "atrinik_workspace/cli.py"
+          ]
+        }
+      ],
+      "transformations": [
+        "Original explanatory prose and command examples derived from public interface contracts.",
+        "New UI metadata and synthetic tests were independently authored.",
+        "No source-license conversion is claimed."
+      ]
+    },
+    {
+      "path": "skills/classic-protocol-change",
+      "license": "MIT",
+      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or generated binding source was copied or adapted.",
+      "public_interface_observations": [
+        {
+          "repository": "https://github.com/atrinik/classic.git",
+          "revision": "4998131ad2ae4c9680685fd87e2d85de1dc15fd9",
+          "paths": [
+            "AGENTS.md",
+            "protocol/CMakeLists.txt",
+            "protocol/tools/generate.py",
+            "client/CMakeLists.txt",
+            "server/CMakeLists.txt",
+            "libatrinik/CMakeLists.txt"
+          ]
+        },
+        {
+          "repository": "https://github.com/atrinik/atrinik.git",
+          "revision": "6b514ef4b096112152947df31b54a1f0937eae86",
+          "paths": [
+            "AGENTS.md",
+            "atrinik_workspace/cli.py"
+          ]
+        }
+      ],
+      "transformations": [
+        "Original explanatory prose and command examples derived from public interface contracts.",
+        "New UI metadata and synthetic tests were independently authored.",
+        "No source-license conversion is claimed."
+      ]
+    },
+    {
+      "path": "skills/classic-runtime",
+      "license": "MIT",
+      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or source code was copied or adapted.",
+      "public_interface_observations": [
+        {
+          "repository": "https://github.com/atrinik/classic.git",
+          "revision": "4998131ad2ae4c9680685fd87e2d85de1dc15fd9",
+          "paths": [
+            "AGENTS.md",
+            "client/AGENTS.md",
+            "client/CMakeLists.txt",
+            "server/AGENTS.md",
+            "server/CMakeLists.txt",
+            "editor/build.sh"
+          ]
+        },
+        {
+          "repository": "https://github.com/atrinik/atrinik.git",
+          "revision": "6b514ef4b096112152947df31b54a1f0937eae86",
+          "paths": [
+            "AGENTS.md",
+            "atrinik_workspace/cli.py"
+          ]
+        }
+      ],
+      "transformations": [
+        "Original explanatory prose and command examples derived from public interface contracts.",
+        "New UI metadata and synthetic tests were independently authored.",
+        "No source-license conversion is claimed."
+      ]
+    }
+  ]
+}

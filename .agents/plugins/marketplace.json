@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "Atrinik"
+  },
+  "name": "atrinik",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "atrinik-development",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/atrinik-development",
+        "source": "local"
+      }
+    }
+  ]
+}

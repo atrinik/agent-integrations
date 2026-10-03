@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/atrinik/atrinik.git",
+    "revision": "476cf9dad436ce7b5fb89113c46014fcca3b8f77",
+    "path": "tests/test_agent_guidance.py"
+  },
+  "policy": "Skill-owned assertions move to this repository; mixed tests retain wrapper-owned assertions upstream and preserve package-owned assertions here.",
+  "transfers": [
+    {"source_test": "test_observation_recovery_has_distinct_prepublication_protocol", "provider_test": "test_observation_recovery_has_distinct_prepublication_protocol", "kind": "move"},
+    {"source_test": "test_same_head_reconnect_uses_public_neutral_proof", "provider_test": "test_same_head_reconnect_uses_public_neutral_proof", "kind": "move"},
+    {"source_test": "test_content_issue_delivery_uses_main_as_sole_authored_source", "provider_test": "test_content_issue_delivery_uses_main_as_sole_authored_source", "kind": "move"},
+    {"source_test": "test_program_master_publication_ledger_is_fail_closed", "provider_test": "test_program_master_publication_ledger_is_fail_closed", "kind": "move"},
+    {"source_test": "test_native_pr_stack_governance_is_guarded_and_complete", "provider_test": "test_native_pr_stack_governance_is_guarded_and_complete", "kind": "move"},
+    {"source_test": "test_retained_recovery_and_helper_certification_remain_specialized", "provider_test": "test_retained_recovery_and_helper_certification_remain_specialized", "kind": "move"},
+    {"source_test": "test_program_and_project_entries_route_source_and_bound_leaves", "provider_test": "test_program_and_project_entries_route_source_and_bound_leaves", "kind": "move"},
+    {"source_test": "test_optional_process_diagnostics_are_guided", "provider_test": "test_optional_process_diagnostics_are_guided", "kind": "split"},
+    {"source_test": "test_native_development_guidance_preserves_authority_boundaries", "provider_test": "test_native_development_guidance_preserves_authority_boundaries", "kind": "split"},
+    {"source_test": "test_native_windows_gpu_handoff_is_synchronized", "provider_test": "test_native_windows_gpu_handoff_is_synchronized", "kind": "split"},
+    {"source_test": "test_container_launch_recipes_are_build_or_runtime_scoped", "provider_test": "test_container_launch_recipes_are_build_or_runtime_scoped", "kind": "split"},
+    {"source_test": "test_native_delivery_is_independent_of_build_worker_lifetime", "provider_test": "test_native_delivery_is_independent_of_build_worker_lifetime", "kind": "split"},
+    {"source_test": "test_issue_delivery_provisioning_examples_match_manifest", "provider_test": "test_issue_delivery_provisioning_examples_match_manifest", "kind": "split"},
+    {"source_test": "test_removed_stale_routes_do_not_return", "provider_test": "test_removed_stale_routes_do_not_return", "kind": "split"},
+    {"source_test": "test_ssh_signing_guidance_is_optional_and_secret_safe", "provider_test": "test_ssh_signing_guidance_is_optional_and_secret_safe", "kind": "split"},
+    {"source_test": "test_pull_request_publication_contract_is_synchronized", "provider_test": "test_pull_request_publication_contract_is_synchronized", "kind": "split"},
+    {"source_test": "test_issue_delivery_routes_new_and_retained_work_to_canonical_contracts", "provider_test": "test_issue_delivery_routes_new_and_retained_work_to_canonical_contracts", "kind": "split"},
+    {"source_test": "test_inventory_is_complete_and_within_budget", "provider_test": "test_all_fifteen_skills_have_complete_metadata", "kind": "replace-with-package-validator"},
+    {"source_test": "test_inventory_requires_the_workspace_skill", "provider_test": "test_all_fifteen_skills_have_complete_metadata", "kind": "replace-with-package-validator"},
+    {"source_test": "test_local_guidance_links_resolve", "provider_test": "test_local_links_resolve_within_package", "kind": "replace-with-package-validator"}
+  ]
+}

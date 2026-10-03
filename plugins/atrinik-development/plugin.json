@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "atrinik-development",
+  "version": "1.0.0",
+  "description": "Reusable Atrinik development skills with portable public references.",
+  "author": {
+    "name": "Atrinik contributors",
+    "url": "https://github.com/atrinik"
+  },
+  "homepage": "https://github.com/atrinik/agent-skills",
+  "repository": "https://github.com/atrinik/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "atrinik",
+    "development",
+    "skills"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Atrinik Development",
+        "shortDescription": "Atrinik development workflows",
+        "longDescription": "Public Atrinik development, delivery, governance, runtime, testing, and Classic workflow skills.",
+        "developerName": "Atrinik contributors",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://github.com/atrinik/agent-skills"
+      }
+    }
+  }
+}

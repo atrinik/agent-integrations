@@ -1,0 +1,14 @@
+{
+  "name": "atrinik-development",
+  "version": "1.0.0",
+  "description": "Reusable Atrinik development skills with portable public references.",
+  "author": {
+    "name": "Atrinik contributors",
+    "url": "https://github.com/atrinik"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Atrinik Development",
+    "shortDescription": "Atrinik development workflows"
+  }
+}
