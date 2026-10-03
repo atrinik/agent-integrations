@@ -1,0 +1,5 @@
+interface:
+  display_name: "Classic runtime"
+  short_description: "Verify isolated Classic gameplay and lifecycle"
+policy:
+  allow_implicit_invocation: true

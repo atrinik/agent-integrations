@@ -1,0 +1,5 @@
+interface:
+  display_name: "Classic native change"
+  short_description: "Implement and validate Classic native changes"
+policy:
+  allow_implicit_invocation: true

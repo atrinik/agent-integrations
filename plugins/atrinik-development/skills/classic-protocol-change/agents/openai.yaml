@@ -1,0 +1,5 @@
+interface:
+  display_name: "Classic protocol change"
+  short_description: "Coordinate Classic wire contracts and consumers"
+policy:
+  allow_implicit_invocation: true
