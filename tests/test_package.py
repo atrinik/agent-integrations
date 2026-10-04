@@ -52,6 +52,25 @@ def frontmatter(path: Path) -> dict[str, str]:
     return values
 
 
+def repository_values(value: object) -> list[str]:
+    if isinstance(value, dict):
+        repositories = [
+            nested
+            for key, nested in value.items()
+            if key == "repository" and isinstance(nested, str)
+        ]
+        for nested in value.values():
+            repositories.extend(repository_values(nested))
+        return repositories
+    if isinstance(value, list):
+        return [
+            repository
+            for nested in value
+            for repository in repository_values(nested)
+        ]
+    return []
+
+
 class PackageTests(unittest.TestCase):
     def test_marketplace_and_plugin_manifests_are_consistent(self) -> None:
         marketplace = json.loads(
@@ -74,7 +93,16 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(codex["name"], entry["name"])
         self.assertEqual(plugin["version"], codex["version"])
         self.assertEqual(codex["skills"], "./skills/")
-        self.assertEqual(plugin["repository"], "https://github.com/atrinik/agent-skills")
+        self.assertEqual(plugin["version"], "1.0.1")
+        self.assertEqual(
+            plugin["repository"],
+            "https://github.com/atrinik/agent-integrations",
+        )
+        self.assertEqual(plugin["homepage"], plugin["repository"])
+        self.assertEqual(
+            plugin["extensions"]["com.openai"]["interface"]["websiteURL"],
+            plugin["repository"],
+        )
         self.assertEqual(plugin["license"], "MIT")
 
     def test_all_fifteen_skills_have_complete_metadata(self) -> None:
@@ -156,7 +184,15 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(len(imported["skills"]), 12)
         self.assertEqual(len(imported["resources"]), 5)
         self.assertEqual(len(provenance["original_work"]), 3)
-        self.assertNotIn("agent-integrations", json.dumps(provenance))
+        self.assertEqual(
+            set(repository_values(provenance)),
+            {
+                "https://github.com/atrinik/atrinik.git",
+                "https://github.com/atrinik/classic.git",
+            },
+        )
+        for item in provenance["original_work"]:
+            self.assertIn("atrinik/agent-integrations", item["origin"])
 
     def test_local_links_resolve_within_package(self) -> None:
         paths = sorted(PLUGIN.rglob("*.md"))

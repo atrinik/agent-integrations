@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "atrinik-development",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable Atrinik development skills with portable public references.",
   "author": {
     "name": "Atrinik contributors",
     "url": "https://github.com/atrinik"
   },
-  "homepage": "https://github.com/atrinik/agent-skills",
-  "repository": "https://github.com/atrinik/agent-skills",
+  "homepage": "https://github.com/atrinik/agent-integrations",
+  "repository": "https://github.com/atrinik/agent-integrations",
   "license": "MIT",
   "keywords": [
     "atrinik",
@@ -27,7 +27,7 @@
           "Read",
           "Write"
         ],
-        "websiteURL": "https://github.com/atrinik/agent-skills"
+        "websiteURL": "https://github.com/atrinik/agent-integrations"
       }
     }
   }

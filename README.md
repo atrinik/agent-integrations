@@ -1,15 +1,16 @@
-# Atrinik agent skills
+# Atrinik agent integrations
 
-Public, MIT-licensed agent skills for Atrinik development. The repository is a
-Codex plugin marketplace containing `atrinik-development`; its plugin package is
-the single canonical copy under `plugins/atrinik-development/`.
+Public, MIT-licensed, portable Agent Skills for Atrinik development. Codex users
+can install them from this repository's plugin marketplace, which contains
+`atrinik-development`; its plugin package is the single canonical copy under
+`plugins/atrinik-development/`.
 
 ## Install with Codex
 
 Add the public marketplace and install the plugin:
 
 ```sh
-codex plugin marketplace add atrinik/agent-skills
+codex plugin marketplace add atrinik/agent-integrations
 codex plugin add atrinik-development@atrinik
 ```
 
@@ -31,15 +32,18 @@ codex plugin remove atrinik-development@atrinik-private
 
 The two installations share the plugin name but have different marketplace
 identities. Keep the marketplace suffix on migration commands so Codex changes
-the intended installation. Removing the old plugin does not change the
-visibility of `atrinik/agent-integrations` or publish any of its history.
+the intended installation. Removing the retired installation only updates
+local Codex configuration; it does not import or expose history from the
+deleted private repository that formerly used this repository name.
 
 ## Atrinik MCP is separate
 
-This plugin contains skills and public reference documents only. It does not
-contain, launch, install, authenticate, or configure an MCP server. Configure an
-existing Atrinik MCP service separately when you want source navigation tools;
-the skills continue to work without it.
+The Atrinik MCP implementation and configuration remain in
+[`atrinik/atrinik`](https://github.com/atrinik/atrinik). This plugin contains
+skills and public reference documents only. It does not contain, launch,
+install, authenticate, or configure an MCP server. Configure an existing
+Atrinik MCP service separately when you want source navigation tools; the
+skills continue to work without it.
 
 ## Validate
 
