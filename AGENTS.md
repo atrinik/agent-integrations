@@ -1,4 +1,4 @@
-# Atrinik agent skills
+# Atrinik Codex integration
 
 This repository owns reusable Atrinik development skills and their supporting
 resources. Keep repository-specific authority and operational implementations

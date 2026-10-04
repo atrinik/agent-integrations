@@ -116,7 +116,7 @@
     {
       "path": "skills/classic-native-change",
       "license": "MIT",
-      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or source code was copied or adapted.",
+      "origin": "Independently authored in atrinik/codex-integration; no prior Classic skill text or source code was copied or adapted.",
       "public_interface_observations": [
         {
           "repository": "https://github.com/atrinik/classic.git",
@@ -152,7 +152,7 @@
     {
       "path": "skills/classic-protocol-change",
       "license": "MIT",
-      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or generated binding source was copied or adapted.",
+      "origin": "Independently authored in atrinik/codex-integration; no prior Classic skill text or generated binding source was copied or adapted.",
       "public_interface_observations": [
         {
           "repository": "https://github.com/atrinik/classic.git",
@@ -184,7 +184,7 @@
     {
       "path": "skills/classic-runtime",
       "license": "MIT",
-      "origin": "Independently authored in atrinik/agent-skills; no prior Classic skill text or source code was copied or adapted.",
+      "origin": "Independently authored in atrinik/codex-integration; no prior Classic skill text or source code was copied or adapted.",
       "public_interface_observations": [
         {
           "repository": "https://github.com/atrinik/classic.git",

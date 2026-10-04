@@ -1,15 +1,15 @@
-# Atrinik agent skills
+# Atrinik Codex integration
 
-Public, MIT-licensed agent skills for Atrinik development. The repository is a
-Codex plugin marketplace containing `atrinik-development`; its plugin package is
-the single canonical copy under `plugins/atrinik-development/`.
+Public, MIT-licensed Codex integration for Atrinik development. The repository
+is a Codex plugin marketplace containing `atrinik-development`; its plugin
+package is the single canonical copy under `plugins/atrinik-development/`.
 
 ## Install with Codex
 
 Add the public marketplace and install the plugin:
 
 ```sh
-codex plugin marketplace add atrinik/agent-skills
+codex plugin marketplace add atrinik/codex-integration
 codex plugin add atrinik-development@atrinik
 ```
 
@@ -36,10 +36,12 @@ visibility of `atrinik/agent-integrations` or publish any of its history.
 
 ## Atrinik MCP is separate
 
-This plugin contains skills and public reference documents only. It does not
-contain, launch, install, authenticate, or configure an MCP server. Configure an
-existing Atrinik MCP service separately when you want source navigation tools;
-the skills continue to work without it.
+The Atrinik MCP implementation and configuration remain in
+[`atrinik/atrinik`](https://github.com/atrinik/atrinik). This plugin contains
+skills and public reference documents only. It does not contain, launch,
+install, authenticate, or configure an MCP server. Configure an existing
+Atrinik MCP service separately when you want source navigation tools; the
+skills continue to work without it.
 
 ## Validate
 

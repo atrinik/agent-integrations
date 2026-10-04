@@ -74,7 +74,16 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(codex["name"], entry["name"])
         self.assertEqual(plugin["version"], codex["version"])
         self.assertEqual(codex["skills"], "./skills/")
-        self.assertEqual(plugin["repository"], "https://github.com/atrinik/agent-skills")
+        self.assertEqual(plugin["version"], "1.0.1")
+        self.assertEqual(
+            plugin["repository"],
+            "https://github.com/atrinik/codex-integration",
+        )
+        self.assertEqual(plugin["homepage"], plugin["repository"])
+        self.assertEqual(
+            plugin["extensions"]["com.openai"]["interface"]["websiteURL"],
+            plugin["repository"],
+        )
         self.assertEqual(plugin["license"], "MIT")
 
     def test_all_fifteen_skills_have_complete_metadata(self) -> None:
