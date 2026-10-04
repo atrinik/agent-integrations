@@ -24,7 +24,7 @@
     {"source_test": "test_ssh_signing_guidance_is_optional_and_secret_safe", "provider_test": "test_ssh_signing_guidance_is_optional_and_secret_safe", "kind": "split"},
     {"source_test": "test_pull_request_publication_contract_is_synchronized", "provider_test": "test_pull_request_publication_contract_is_synchronized", "kind": "split"},
     {"source_test": "test_issue_delivery_routes_new_and_retained_work_to_canonical_contracts", "provider_test": "test_issue_delivery_routes_new_and_retained_work_to_canonical_contracts", "kind": "split"},
-    {"source_test": "test_inventory_is_complete_and_within_budget", "provider_test": "test_all_fifteen_skills_have_complete_metadata", "kind": "replace-with-package-validator"},
+    {"source_test": "test_inventory_is_complete_and_within_budget", "provider_test": "test_imported_skill_catalog_and_bodies_preserve_budgets", "kind": "replace-with-package-validator"},
     {"source_test": "test_inventory_requires_the_workspace_skill", "provider_test": "test_all_fifteen_skills_have_complete_metadata", "kind": "replace-with-package-validator"},
     {"source_test": "test_local_guidance_links_resolve", "provider_test": "test_local_links_resolve_within_package", "kind": "replace-with-package-validator"}
   ]

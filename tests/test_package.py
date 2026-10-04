@@ -29,6 +29,14 @@ EXPECTED_SKILLS = {
     "classic-protocol-change",
     "classic-runtime",
 }
+CLASSIC_SKILLS = {
+    "classic-native-change",
+    "classic-protocol-change",
+    "classic-runtime",
+}
+IMPORTED_SKILLS = EXPECTED_SKILLS - CLASSIC_SKILLS
+MAX_IMPORTED_CATALOG_BYTES = 2_250
+MAX_IMPORTED_SKILL_BYTES = 62_500
 LINK = re.compile(r"\[[^]]+\]\(([^)]+)\)")
 
 
@@ -102,6 +110,28 @@ class PackageTests(unittest.TestCase):
                 else:
                     self.assertIsNone(policy)
 
+    def test_imported_skill_catalog_and_bodies_preserve_budgets(self) -> None:
+        catalog = "".join(
+            f"{name}\t{frontmatter(SKILLS / name / 'SKILL.md')['description']}\t"
+            f".agents/skills/{name}/SKILL.md\n"
+            for name in sorted(IMPORTED_SKILLS)
+        )
+        catalog_bytes = len(catalog.encode("utf-8"))
+        skill_bytes = sum(
+            len((SKILLS / name / "SKILL.md").read_bytes())
+            for name in IMPORTED_SKILLS
+        )
+        self.assertLessEqual(
+            catalog_bytes,
+            MAX_IMPORTED_CATALOG_BYTES,
+            f"imported skill catalog is {catalog_bytes} bytes",
+        )
+        self.assertLessEqual(
+            skill_bytes,
+            MAX_IMPORTED_SKILL_BYTES,
+            f"imported SKILL.md bodies are {skill_bytes} bytes",
+        )
+
     def test_canonical_package_has_no_private_runtime_payload(self) -> None:
         self.assertFalse((PLUGIN / "server").exists())
         self.assertFalse((PLUGIN / "config").exists())
@@ -172,6 +202,19 @@ class PackageTests(unittest.TestCase):
             )
             self.assertEqual(result.stdout, str(current))
             self.assertNotEqual(result.stdout, env["UNTRUSTED_HELPER"])
+
+            current.unlink()
+            historical.unlink()
+            with tempfile.TemporaryDirectory(prefix="unaccepted candidate ") as outside_dir:
+                outside = Path(outside_dir) / "delivery_ledger.py"
+                outside.write_text("candidate", encoding="utf-8")
+                current.symlink_to(outside)
+                rejected = subprocess.run(
+                    ["sh", "-c", selection], cwd="/", env=env,
+                    check=False, capture_output=True, text=True,
+                )
+                self.assertNotEqual(rejected.returncode, 0)
+                self.assertNotIn(str(outside), rejected.stdout)
 
     def test_delivery_helper_guidance_fails_closed_on_candidate_paths(self) -> None:
         paths = [
