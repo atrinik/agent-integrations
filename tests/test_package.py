@@ -72,6 +72,15 @@ class PackageTests(unittest.TestCase):
     def test_all_fifteen_skills_have_complete_metadata(self) -> None:
         actual = {path.name for path in SKILLS.iterdir() if path.is_dir()}
         self.assertEqual(actual, EXPECTED_SKILLS)
+        explicit_false = {
+            "atrinik-issue-delivery",
+            "atrinik-program-delivery",
+        }
+        explicit_true = {
+            "classic-native-change",
+            "classic-protocol-change",
+            "classic-runtime",
+        }
         for name in sorted(EXPECTED_SKILLS):
             skill = SKILLS / name
             with self.subTest(skill=name):
@@ -80,8 +89,18 @@ class PackageTests(unittest.TestCase):
                 self.assertTrue(metadata.get("description"))
                 interface = (skill / "agents/openai.yaml").read_text(encoding="utf-8")
                 self.assertIn("interface:", interface)
-                self.assertIn("policy:", interface)
-                self.assertRegex(interface, r"(?m)^  allow_implicit_invocation: (?:true|false)$")
+                policy = re.search(
+                    r"(?m)^  allow_implicit_invocation: (true|false)$",
+                    interface,
+                )
+                if name in explicit_false:
+                    self.assertIsNotNone(policy)
+                    self.assertEqual(policy.group(1), "false")
+                elif name in explicit_true:
+                    self.assertIsNotNone(policy)
+                    self.assertEqual(policy.group(1), "true")
+                else:
+                    self.assertIsNone(policy)
 
     def test_canonical_package_has_no_private_runtime_payload(self) -> None:
         self.assertFalse((PLUGIN / "server").exists())
