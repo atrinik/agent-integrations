@@ -194,6 +194,17 @@ class PackageTests(unittest.TestCase):
         names = [item["source_test"] for item in transfer["transfers"]]
         self.assertEqual(len(names), len(set(names)))
         self.assertGreaterEqual(len(names), 20)
+        provider_tests = {
+            match.group(1)
+            for path in (ROOT / "tests").glob("test_*.py")
+            for match in re.finditer(
+                r"(?m)^    def (test_[a-z0-9_]+)\(",
+                path.read_text(encoding="utf-8"),
+            )
+        }
+        for item in transfer["transfers"]:
+            with self.subTest(source_test=item["source_test"]):
+                self.assertIn(item["provider_test"], provider_tests)
 
 
 if __name__ == "__main__":
