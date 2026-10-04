@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: codex-integration-validation-${{ github.event.pull_request.number || github.ref }}
+  group: agent-integrations-validation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

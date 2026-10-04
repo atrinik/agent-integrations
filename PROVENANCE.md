@@ -8,8 +8,9 @@ repository's MIT license. The JSON record retains the original Git tree/blob
 identities and the explicit portability and authority edits made during
 migration.
 
-No Git history or source material from the private
-`atrinik/agent-integrations` repository is part of this public repository. That
+No Git history or source material from the deleted private repository that
+formerly used the `atrinik/agent-integrations` name is part of this public
+repository. This public repository reuses only that name. The deleted
 repository was used only as an already-reviewed package-shape reference; it is
 not a public provenance source.
 

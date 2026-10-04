@@ -7,8 +7,8 @@
     "name": "Atrinik contributors",
     "url": "https://github.com/atrinik"
   },
-  "homepage": "https://github.com/atrinik/codex-integration",
-  "repository": "https://github.com/atrinik/codex-integration",
+  "homepage": "https://github.com/atrinik/agent-integrations",
+  "repository": "https://github.com/atrinik/agent-integrations",
   "license": "MIT",
   "keywords": [
     "atrinik",
@@ -27,7 +27,7 @@
           "Read",
           "Write"
         ],
-        "websiteURL": "https://github.com/atrinik/codex-integration"
+        "websiteURL": "https://github.com/atrinik/agent-integrations"
       }
     }
   }

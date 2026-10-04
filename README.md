@@ -1,15 +1,16 @@
-# Atrinik Codex integration
+# Atrinik agent integrations
 
-Public, MIT-licensed Codex integration for Atrinik development. The repository
-is a Codex plugin marketplace containing `atrinik-development`; its plugin
-package is the single canonical copy under `plugins/atrinik-development/`.
+Public, MIT-licensed, portable Agent Skills for Atrinik development. Codex users
+can install them from this repository's plugin marketplace, which contains
+`atrinik-development`; its plugin package is the single canonical copy under
+`plugins/atrinik-development/`.
 
 ## Install with Codex
 
 Add the public marketplace and install the plugin:
 
 ```sh
-codex plugin marketplace add atrinik/codex-integration
+codex plugin marketplace add atrinik/agent-integrations
 codex plugin add atrinik-development@atrinik
 ```
 
@@ -31,8 +32,9 @@ codex plugin remove atrinik-development@atrinik-private
 
 The two installations share the plugin name but have different marketplace
 identities. Keep the marketplace suffix on migration commands so Codex changes
-the intended installation. Removing the old plugin does not change the
-visibility of `atrinik/agent-integrations` or publish any of its history.
+the intended installation. Removing the retired installation only updates
+local Codex configuration; it does not import or expose history from the
+deleted private repository that formerly used this repository name.
 
 ## Atrinik MCP is separate
 
