@@ -213,5 +213,54 @@
         "No source-license conversion is claimed."
       ]
     }
+  ],
+  "current_file_updates": [
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "a9661a2bd978107fe4e01e45b2e22fcd1e2d095c",
+      "source_path": "docs/LINUX_EXECUTION.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/LINUX_EXECUTION.md",
+      "source_blob": "01c111fc459aee8aa1a9dfea5d1a879bfc28896a",
+      "destination_blob": "b3b62cf016cc620228e258331fc83fd4ac37884b",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
+      ],
+      "link_updates": [
+        {
+          "source_target": "../README.md#pinned-build-and-runtime-containers",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md#pinned-build-and-runtime-containers"
+        },
+        {
+          "source_target": "NATIVE_LINUX_TOOLCHAIN.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/docs/NATIVE_LINUX_TOOLCHAIN.md"
+        },
+        {
+          "source_target": "../README.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "a9661a2bd978107fe4e01e45b2e22fcd1e2d095c",
+      "source_path": "docs/WINDOWS_GPU_PREFLIGHT.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/WINDOWS_GPU_PREFLIGHT.md",
+      "source_blob": "d39140ce9ebb362fa71f512accce3955ae2b2903",
+      "destination_blob": "d39140ce9ebb362fa71f512accce3955ae2b2903",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Copied source bytes unchanged; all existing resource links remain package-relative."
+      ],
+      "link_updates": []
+    }
   ]
 }
