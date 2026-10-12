@@ -15,3 +15,7 @@ permissions, branch and revision checks. No implicit merge or deployment.
 
 Organization community files provide shared issue forms, security policy,
 code of conduct and pull-request templates; avoid redundant copies.
+
+Dependency review is advisory. Before merge, the Codex implementer reads its PR
+comment or job summary, fixes actionable introduced dependency risk, or records
+explicit maintainer acceptance of existing risk.
