@@ -261,6 +261,36 @@
         "Copied source bytes unchanged; all existing resource links remain package-relative."
       ],
       "link_updates": []
+    },
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "8b00b5b3b44f1230b5df97715b613a68150e5a68",
+      "source_path": "docs/LINUX_EXECUTION.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/LINUX_EXECUTION.md",
+      "source_blob": "7a43aa398f6478c7e4e11e4632b417b524fbaf0e",
+      "destination_blob": "ccbd6df60204b1edad734b3c0d56871547457139",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
+      ],
+      "link_updates": [
+        {
+          "source_target": "../README.md#pinned-build-and-runtime-containers",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md#pinned-build-and-runtime-containers"
+        },
+        {
+          "source_target": "NATIVE_LINUX_TOOLCHAIN.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/docs/NATIVE_LINUX_TOOLCHAIN.md"
+        },
+        {
+          "source_target": "../README.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md"
+        }
+      ]
     }
   ]
 }

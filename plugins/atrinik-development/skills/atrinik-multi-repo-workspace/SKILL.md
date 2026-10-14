@@ -4,18 +4,18 @@ description: Coordinate work across checkouts, profiles, worktrees, cleanup, rel
 ---
 # Atrinik multi-repository workspace
 
-Prefer `atrinik` MCP when available: [routing](https://github.com/atrinik/atrinik/blob/476cf9dad436ce7b5fb89113c46014fcca3b8f77/docs/MCP_CONTEXT.md).
+Prefer available `atrinik` MCP: [routing](https://github.com/atrinik/atrinik/blob/476cf9dad436ce7b5fb89113c46014fcca3b8f77/docs/MCP_CONTEXT.md).
 
 ## Scope and ownership
 
-1. Read `AGENTS.md`, resolve ownership in `components.json`, and read the relevant
-   README/architecture section. Load [repository migration](references/repository-migration.md)
+1. Read `AGENTS.md` and relevant README/architecture guidance; resolve ownership
+   in `components.json`. Load [repository migration](references/repository-migration.md)
    only for pre-split layouts.
 2. Resolve each physical checkout and nearest `AGENTS.md`; keep code, tests,
    packages, and releases with their physical owners.
-3. Process/tooling diagnostics are discretionary; skip routine ledger reads,
-   writes and status lines. If recording a useful observation, use
-   `./atrinik agent-ledger update`; reporting errors never block delivery.
+3. Process/tooling diagnostics are optional; skip routine ledger reads, writes
+   and status lines. Record useful observations with `./atrinik agent-ledger update`;
+   reporting errors never block delivery.
 
 Ignored checkouts retain physical ownership. One `classic` worktree holds all
 `classic-*` components; stacks share `content@main`. Never target historical 1.x.
@@ -25,10 +25,10 @@ Repair local blockers under [local recovery](https://github.com/atrinik/atrinik/
 ## Safe worktrees
 
 New source-only changes use [source delivery](../../references/atrinik-workspace/docs/SOURCE_DELIVERY.md).
-The source helper creates owned Git worktrees; verify interrupted edits. Existing
-bound deliveries remain on their original recovery protocol. Use the managed
-scope/worktree instructions below when the task needs those resources, not as a
-prerequisite to an isolated source patch or fixture test.
+Verify interrupted edits in source-helper-owned Git worktrees. Bound deliveries
+retain their original recovery protocol. Use managed scope/worktree
+instructions below only for tasks needing those resources; isolated source
+patches and fixture tests require none.
 
 Inspect before mutation:
 
@@ -37,13 +37,13 @@ Inspect before mutation:
 ./atrinik status --json
 ```
 
-Initialize absent repositories with `init` (`--with classic` adds classic);
+Initialize absent repos with `init` (`--with classic` adds classic);
 `sync` never clones.
 
 Sync only clean primaries; never alter dirty sources. Managed Classic selectors create
 `workspace/worktrees/classic/LABEL`; prefer atomic scopes.
 
-Selectors are positional; overrides target physical checkout `classic`:
+Positional selectors; overrides target physical checkout `classic`:
 
 ```sh
 ./atrinik scope create classic-client --name REVIEW --from classic \
@@ -86,8 +86,8 @@ preview. Never clean pending/unsafe receipts or delivery sidecars.
 
 ## Coherent sources
 
-Use `default` for replacement and `classic` for playable sources; never mix providers
-or substitute classic C/CMake for missing adapters. Replacement repositories lack wrapper closure.
+Use `default` for replacement, `classic` for playable sources; never mix providers
+or replace missing adapters with classic C/CMake. Replacement repos lack wrapper closure.
 
 ```sh
 ./atrinik profile create REVIEW --from classic
@@ -97,8 +97,8 @@ or substitute classic C/CMake for missing adapters. Replacement repositories lac
 ./atrinik build COMPONENT --profile REVIEW --test
 ```
 
-In an initialized workspace, `build --plan --json` returns execution coordinates;
-use the same options with `--expected-plan SHA256`. Unbound intents require the
+After initialization, `build --plan --json` returns execution coordinates;
+reuse its options with `--expected-plan SHA256`. Unbound intents require the
 [issue recovery procedure](../atrinik-issue-delivery/references/delivery-ledger.md);
 preserve terminal residuals. Use `resource_context` for wrapper worktrees.
 
@@ -110,7 +110,7 @@ Gate matching coordinates; multi-source writers retry all-or-none; fail closed o
 state. Migration alone takes the barrier. Published runtimes retain generation/process-tree/state/
 port leases. Completion is bounded/read-only, secret-free, parser-driven before `Workspace`.
 
-Use an owned native Linux worktree. Bound resource work retains exact
+Use owned native Linux worktrees. Bound resource work retains exact
 host/user/profile/build/ledger coordinates. Use [short-lived pinned CPU build
 workers](../../references/atrinik-workspace/docs/LINUX_EXECUTION.md) and isolated reusable caches for builds
 and toolchain checks. Worker exit preserves native ownership. Bound recovery reruns
@@ -129,13 +129,13 @@ characters. Never handcraft saves or expose credentials; use distinct topology/s
 
 ## Validate and hand off
 
-Use the exact profile/build/topology/runtime lifecycle in root `AGENTS.md`.
+Use root `AGENTS.md`’s exact profile/build/topology/runtime lifecycle.
 
-For native Windows Classic GPU handoff, follow [`docs/WINDOWS_GPU_PREFLIGHT.md`](../../references/atrinik-workspace/docs/WINDOWS_GPU_PREFLIGHT.md); reuse Classic package-smoke/D3D12 commands and keep
+For native Windows Classic GPU, follow [`docs/WINDOWS_GPU_PREFLIGHT.md`](../../references/atrinik-workspace/docs/WINDOWS_GPU_PREFLIGHT.md); reuse Classic package-smoke/D3D12 commands and keep
 package, test-build, native runtime, and Linux coordinator evidence separate.
 
-Record applicable prerequisites, results and next actions; never replace managed
-wrapper operations with internal executables/generated paths.
+Record prerequisites, results and next actions; never replace managed wrapper
+operations with internal executables/generated paths.
 
 ## Publication and policy
 
@@ -146,7 +146,7 @@ diagnostics never gate work or require inventory updates. Follow
 
 ## Maintain guidance
 
-For wrapper or cross-repository contract changes, load `atrinik-guidance-maintenance`;
+For wrapper/cross-repository contract changes, load `atrinik-guidance-maintenance`;
 sync guidance and run inventory/validation.
 
 Portable export requires verified released sound and the pinned producer;

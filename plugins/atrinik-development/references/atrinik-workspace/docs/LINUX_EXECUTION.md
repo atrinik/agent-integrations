@@ -14,7 +14,7 @@ before activation, without modifying existing journals or ledgers.
 | Short-lived pinned Linux build worker | None required | No delivery authority | Exact image, source, cache and resource proofs |
 | Already-bound historical Linux coordinator | None required | Existing `canonical-linux` contract after complete live proof | Exact retained image/mount/worktree/ledger coordinates |
 | Optional native Linux client container | Selected X11/Wayland and real GPU | Runtime capability does not grant delivery authority | Selected renderer and gameplay evidence |
-| Retained Windows/WSL2/WSLg desktop composition | Existing WSLg display/audio/GPU mounts | Runtime capability alone grants no authority; existing canonical proof is separate | [Credential-bearing prerequisites](https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md#pinned-build-and-runtime-containers); keep native Windows evidence separate |
+| Retained Windows/WSL2/WSLg desktop composition | Existing WSLg display/audio/GPU mounts | Runtime capability alone grants no authority; existing canonical proof is separate | [Credential-bearing prerequisites](https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md#pinned-build-and-runtime-containers); keep native Windows evidence separate |
 | Windows cross-build container | None | No ledger authority | LLVM Windows package/build evidence only |
 | Native Windows | Native graphics for D3D12 qualification | No Linux ledger authority | Native Windows runtime evidence |
 
@@ -305,7 +305,7 @@ python3 -m atrinik_workspace.linux_platform
 ```
 
 For complete Classic client/server/test prerequisites, follow the
-[optional Ubuntu 26.04 native toolchain recipe](https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/docs/NATIVE_LINUX_TOOLCHAIN.md): exact
+[optional Ubuntu 26.04 native toolchain recipe](https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/docs/NATIVE_LINUX_TOOLCHAIN.md): exact
 owner package snapshot, user-local pinned audio libraries, wrapper-managed
 shader tools, integrated tests and headless runtime commands. Its source
 contract is container-tested; direct-host qualification is separately recorded
@@ -364,7 +364,7 @@ docker pull ghcr.io/atrinik/linux-build:1.18.0@sha256:613cf43ab07634db005a28462a
 For portable export, pull its separate producer only when needed:
 
 ```sh
-docker pull ghcr.io/atrinik/classic-portable-build@sha256:8f6d345f0e24afad5e53d9e35c37f3e3b4012e5cc2c399334711e55e61a2a338
+docker pull ghcr.io/atrinik/classic-portable-build@sha256:74761e930f5d57face2d81efb0dc50dd4ce32ce1204810e56580bf68a5972ebc
 ```
 
 A pull of a public package needs no login. A private-package denial requires the
@@ -526,10 +526,16 @@ mode, host credentials or a Docker socket to the client.
 ## Portable client export
 
 The public exporter runs in the exact published portable build environment,
-`ghcr.io/atrinik/classic-portable-build@sha256:8f6d345f0e24afad5e53d9e35c37f3e3b4012e5cc2c399334711e55e61a2a338`.
-This is a separate immutable producer after the short-lived pinned CPU
-build/test stage; it grants no delivery authority and does not replace the
-native host runtime. Before merge, the automatic `Linux portable acceptance`
+`ghcr.io/atrinik/classic-portable-build@sha256:74761e930f5d57face2d81efb0dc50dd4ce32ce1204810e56580bf68a5972ebc`.
+This fixed SDK 1.22.0 producer comes from devcontainer
+`eb1f6af78216adb4375826cdb70ef78a61ab403a`.
+[Collector run 38513888428](https://github.com/atrinik/devcontainer/actions/runs/38513888428)
+provides installed identity and trusted hosted filesystem equality, including
+seven authenticated metadata files. Its `final_portable_cohort` receipt remains
+false; retained assessment does not independently rehash executable/provider
+payloads or prove portable export. This is a separate immutable producer after
+the short-lived pinned CPU build/test stage; it grants no delivery authority and
+does not replace the native host runtime. Before merge, the automatic `Linux portable acceptance`
 pull-request workflow is the supported actual producer route. Its
 `Portable client build and relocation` job is nonpublishing, limits the producer
 to two CPUs, and serializes heavy runs without cancelling another owner's run.
@@ -540,7 +546,7 @@ The final runtime process has neither credentials nor original source/build
 mounts, and its network, display, GPU and audio endpoints are absent.
 
 Its current full-commit consumer
-guard requires Classic `d926f6fd0418fb1af9060158c43d8d3ff5252580`.
+guard requires Classic `bd5317a03cdc82f029105c5dc26428b09fcd54b3`.
 Use a clean Classic profile with verified released sound matching its selected
 sound source commit, and a new absolute destination
 whose parent is owned by the invoking user and not writable by other users.
@@ -551,8 +557,8 @@ profile lets the exporter materialize immutable generations from these primary
 selectors. Advancing either repository's `main`
 branch does not change this acceptance recipe; qualifying a new Classic commit
 requires a separately reviewed immutable producer.
-Create `classic-released-audio` with the exact v1.0.0 coordinates in the
-[released sound recipe](https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md) before running these producer
+Create `classic-released-audio` with the exact v1.2.0 coordinates in the
+[released sound recipe](https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md) before running these producer
 commands (the CI driver creates its own equivalent saved profile):
 
 ```sh
@@ -577,10 +583,29 @@ before export. Compiler capability probes use the same scrubbed environment as
 the build. This retains the existing host-tool trust boundary; it does not attest
 the Python standard library or add an interpreter to immutable SDK metadata.
 
-The complete installed producer closure is bound to an independently reconstructed
-OCI overlay inventory: 299 regular files, including all eight upstream archives,
-222 Debian source archives, build recipes and notices. Three pinned aggregate
-SHA-256 values cover the producer tree, 145 Debian copyright paths and 14 common
+Portable Ninja commands additionally admit the measured `/bin/sh` chain as
+`command_shell` in the separate `host_tools` receipt. The fixed producer and
+consumer coordinates must match the shell literal before capture and every
+revalidation. The accepted chain is `/bin -> usr/bin` and `/usr/bin/sh -> dash`,
+with root-owned mode0755 directories and `/usr/bin/dash`, and root-owned mode0777
+symlinks protected by those directories. The target's exact 125,640 bytes and
+ELF64 little-endian x86-64 ET_DYN header are bound to the successful
+[fixed SDK shell collector run](https://github.com/atrinik/atrinik/actions/runs/38525579823).
+A finite no-follow descriptor walk holds all six entries through hashing and
+pathname rechecks; the operation receipt freezes device, inode and stat identity.
+Missing entries, alternate links, hardlinked targets, unsafe owners or modes,
+changed bytes or identities and mismatched cohort/receipts refuse admission.
+The requirement that the target have one hard link is a runtime safety
+precondition, separate from the collector's retained byte and symlink observations. No observed replacement
+shell is accepted as a fallback. This remains separate from the three published
+build-tool records and seven SDK metadata files. It does not execute the shell
+or an ELF inspector, attest its OS loader/libraries/standard data, or prove
+historical execution against a privileged swap-and-restore.
+
+The complete installed producer closure is bound to the collector maps accepted
+through trusted hosted filesystem equality: 364 regular producer files, including
+upstream and Debian source archives, build recipes and notices. Three pinned aggregate
+SHA-256 values cover the producer tree, 165 Debian copyright paths and 14 common
 license texts. Each canonical JSON map uses sorted keys and compact separators;
 producer/common-license keys are relative paths and values are
 `sha256`, `size`, `executable`. Debian keys are requested absolute copyright paths
@@ -597,6 +622,11 @@ its loader and graphics drivers. The X11/Vulkan producer uses XWayland on a
 Wayland desktop; PulseAudio or PipeWire's Pulse service supplies audio.
 
 The pinned Debian libpulse input has an absolute PulseAudio search directory.
+The retained ABI metadata corroborates the original provider path and input hash;
+it supplies no raw provider size, edit span or derivative output proof. The
+candidate recipe rebinds only the producer image/platform coordinates; all
+strict byte checks remain unchanged. Exact-revision hosted export must verify
+the actual input bytes, size, span and derivative output before acceptance.
 Export derives only that exact provider's private copy by replacing its 37-byte
 NUL-terminated DT_RUNPATH string with `$ORIGIN` and NUL padding. Strict ELF
 inspection remains mandatory for the derived bytes and every other provider.
@@ -784,6 +814,15 @@ configured-header inventories, or the pinned producer's declared SDK include
 directories. Authored include directives remain part of the trusted, proof-bound
 source; these checks do not attest every transitive header opened by the compiler. Forced headers, PCH,
 modules, overlays and preprocessor input redirection are unsupported.
+
+The same-operation context freezes the authenticated compiler evidence and
+rehashes all ten LLVM executable roles and both runtime archives around prefix
+and fingerprint probes, configure, build, output capture, runtime inspection and
+export publication. Refreshed installed metadata must still equal that frozen
+evidence; it cannot replace the caller's compiler authority. The final installed
+producer hash check remains required. These phase checks detect observed byte
+drift; they do not prove historical execution against a privileged
+swap-and-restore or attest the tools' transitive execution closure.
 
 Every portable operation resets its owned CMake binary tree and configures with
 `BUILD_TESTING=OFF`. Immediately after configure, an in-memory receipt freezes
