@@ -33,3 +33,7 @@ the revision of the provenance record itself.
 Package validation resolves each local source, baseline and license claim from
 the provider's actual Git objects without network access. Missing commits or
 blobs fail validation; CI checks out full history with credentials disabled.
+Because squash merges do not retain PR commits as main ancestors, CI also
+fetches the validated full local source/baseline commit IDs from the fixed
+public provider repository before running offline tests. Fetch failure fails
+validation; it does not substitute current files for the recorded Git objects.

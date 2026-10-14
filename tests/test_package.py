@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -338,6 +339,56 @@ class PackageTests(unittest.TestCase):
                                (record["revision"], "missing-provenance-source")):
             with self.subTest(revision=revision, path=path), self.assertRaises(ValueError):
                 recorded_git_blob(revision, path)
+
+    def test_provenance_hydration_restores_source_after_squash(self) -> None:
+        workflow = (ROOT / ".github/workflows/validate.yml").read_text()
+        block = workflow.split("      - name: Fetch immutable local provenance objects\n", 1)[1]
+        block = block.split("        run: |\n", 1)[1].split("\n      - name:", 1)[0]
+        script = "\n".join(line[10:] for line in block.splitlines()) + "\n"
+        canonical = "repository = 'https://github.com/atrinik/agent-integrations.git'"
+        self.assertIn(canonical, script)
+        provenance = json.loads((PLUGIN / "provenance.json").read_text())
+        source = provenance["local_authored_updates"][0]["revision"]
+        baseline = provenance["local_authored_updates"][0]["baseline"]["revision"]
+        env = {**os.environ, "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+               "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+               "GIT_TERMINAL_PROMPT": "0", "GIT_NO_LAZY_FETCH": "1"}
+
+        def git(directory: Path, *args: str) -> str:
+            return subprocess.check_output(["git", *args], cwd=directory, env=env,
+                                           stderr=subprocess.PIPE, text=True).strip()
+
+        with tempfile.TemporaryDirectory(prefix="provenance-squash-") as temporary:
+            origin, checkout = Path(temporary) / "origin", Path(temporary) / "checkout"
+            origin.mkdir()
+            git(origin, "init")
+            git(origin, "fetch", "--no-tags", str(ROOT), "HEAD")
+            tree = git(origin, "rev-parse", "FETCH_HEAD^{tree}")
+            squash = git(origin, "commit-tree", tree, "-p", baseline, "-m", "Synthetic squash")
+            git(origin, "update-ref", "refs/heads/main", squash)
+            git(origin, "clone", "--no-local", "--single-branch", "--branch", "main", str(origin), str(checkout))
+            missing = subprocess.run(["git", "cat-file", "-e", source], cwd=checkout,
+                                     env=env, capture_output=True)
+            self.assertNotEqual(missing.returncode, 0)
+            # Use only a controlled local source in this fixture; CI keeps the fixed public URL.
+            local_script = script.replace(canonical, f"repository = {str(ROOT)!r}")
+            # Records retain the public identity while transport is replaced for this offline fixture.
+            local_script = local_script.replace("record.get('repository') != repository",
+                                                "record.get('repository') != 'https://github.com/atrinik/agent-integrations.git'")
+            subprocess.run([sys.executable, "-B", "-c", local_script], cwd=checkout,
+                           env=env, check=True, capture_output=True)
+            self.assertEqual(git(checkout, "cat-file", "-t", source), "commit")
+            subprocess.run([sys.executable, "-B", "-m", "unittest",
+                            "tests.test_package.PackageTests.test_installed_package_retains_license_and_provenance"],
+                           cwd=checkout, env=env, check=True, capture_output=True)
+            # A unavailable exact commit must fail hydration rather than silently using current files.
+            record_path = checkout / "plugins/atrinik-development/provenance.json"
+            invalid = json.loads(record_path.read_text())
+            invalid["local_authored_updates"][0]["revision"] = "0" * 40
+            record_path.write_text(json.dumps(invalid))
+            refused = subprocess.run([sys.executable, "-B", "-c", local_script], cwd=checkout,
+                                     env=env, capture_output=True)
+            self.assertNotEqual(refused.returncode, 0)
 
     def test_local_links_resolve_within_package(self) -> None:
         paths = sorted(PLUGIN.rglob("*.md"))

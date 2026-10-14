@@ -30,6 +30,35 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Fetch immutable local provenance objects
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+
+          repository = 'https://github.com/atrinik/agent-integrations.git'
+          records = json.loads(Path('plugins/atrinik-development/provenance.json').read_text())['local_authored_updates']
+          if not isinstance(records, list) or len(records) != 2:
+              raise ValueError('Expected two local provenance records')
+          revisions = set()
+          for record in records:
+              if record.get('repository') != repository:
+                  raise ValueError('Unexpected local provenance repository')
+              for revision in (record['revision'], record['baseline']['revision']):
+                  if not isinstance(revision, str) or not re.fullmatch(r'[0-9a-f]{40}', revision):
+                      raise ValueError('Expected full immutable provenance revision')
+                  revisions.add(revision)
+          env = {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_LAZY_FETCH': '1'}
+          for revision in sorted(revisions):
+              subprocess.run(
+                  ['git', '-c', 'credential.helper=', '-c', 'http.extraHeader=',
+                   'fetch', '--no-tags', '--no-write-fetch-head', repository, revision],
+                  env=env, check=True, timeout=120,
+              )
+
       - name: Select Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
