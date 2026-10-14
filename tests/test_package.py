@@ -495,11 +495,11 @@ class PackageTests(unittest.TestCase):
             (root_origin / ".git/objects/info/alternates").write_text("\n".join(object_sources) + "\n")
             origin.mkdir()
             git(origin, "init")
-            git(origin, "fetch", "--no-tags", str(ROOT), "HEAD")
+            git(origin, "fetch", "--update-shallow", "--no-tags", str(ROOT), "HEAD")
             tree = git(origin, "rev-parse", "FETCH_HEAD^{tree}")
             squash = git(origin, "commit-tree", tree, "-p", baseline, "-m", "Synthetic squash")
             git(origin, "update-ref", "refs/heads/main", squash)
-            git(origin, "clone", "--no-local", "--single-branch", "--branch", "main", str(origin), str(checkout))
+            git(origin, "clone", "--no-local", "--depth=2", "--single-branch", "--branch", "main", str(origin), str(checkout))
             anchor_blob = git(ROOT, "rev-parse", f"{PROVENANCE_BASELINE}:{PROVENANCE_PATH}")
             missing_anchor = subprocess.run(["git", "cat-file", "-e", PROVENANCE_BASELINE],
                                             cwd=checkout, env=env, capture_output=True)
@@ -519,13 +519,32 @@ class PackageTests(unittest.TestCase):
                                                 "record.get('repository') != 'https://github.com/atrinik/agent-integrations.git'")
             local_script = local_script.replace("update.get('repository') != root_repository",
                                                 "update.get('repository') != 'https://github.com/atrinik/atrinik.git'")
+            shallow_file = checkout / ".git/shallow"
+            self.assertTrue(shallow_file.is_file())
+            shallow_before = shallow_file.read_bytes()
+            refs_before = git(checkout, "for-each-ref", "--format=%(refname) %(objectname)")
+            history_before = git(checkout, "rev-list", "--all")
             subprocess.run([sys.executable, "-B", "-c", local_script], cwd=checkout,
                            env=env, check=True, capture_output=True)
+            self.assertEqual(shallow_file.read_bytes(), shallow_before)
+            self.assertEqual(git(checkout, "for-each-ref", "--format=%(refname) %(objectname)"), refs_before)
+            self.assertEqual(git(checkout, "rev-list", "--all"), history_before)
             self.assertEqual(git(checkout, "cat-file", "-t", source), "commit")
             self.assertEqual(git(checkout, "rev-parse", f"{PROVENANCE_BASELINE}:{PROVENANCE_PATH}"), anchor_blob)
             subprocess.run([sys.executable, "-B", "-m", "unittest",
                             "tests.test_package.PackageTests.test_installed_package_retains_license_and_provenance"],
                            cwd=checkout, env=env, check=True, capture_output=True)
+            # Even an already-cached exact commit must be refused if its remote cannot serve it.
+            empty_remote = Path(temporary) / "empty.git"
+            git(origin, "init", "--bare", str(empty_remote))
+            cached_bypass = subprocess.run(["git", "fetch", "--no-tags", "--no-write-fetch-head",
+                                           str(empty_remote), baseline], cwd=checkout, env=env, capture_output=True)
+            self.assertEqual(cached_bypass.returncode, 0)
+            unavailable_remote_script = local_script.replace(f"repository = {str(ROOT)!r}",
+                                                               f"repository = {str(empty_remote)!r}")
+            refused_remote = subprocess.run([sys.executable, "-B", "-c", unavailable_remote_script],
+                                             cwd=checkout, env=env, capture_output=True)
+            self.assertNotEqual(refused_remote.returncode, 0)
             # An unavailable exact commit must fail hydration rather than silently using current files.
             record_path = checkout / "plugins/atrinik-development/provenance.json"
             invalid = json.loads(record_path.read_text())

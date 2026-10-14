@@ -46,3 +46,8 @@ update with the packaged bytes while preserving earlier chain records.
 The original ordered update prefix is anchored field-for-field as JSON records
 to the actual provenance Git blob at public provider baseline
 `38a3f01939c67e5172e4a7eedd8f6330e9339bbd`; later updates may append to that prefix.
+
+CI verifies each source, baseline and anchor commit against its fixed public
+repository in a fresh temporary Git object store before importing it. The
+verification store excludes checkout objects, inherited object directories and
+alternates, so a cached local commit cannot mask an unavailable remote object.

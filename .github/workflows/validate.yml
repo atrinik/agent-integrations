@@ -38,6 +38,7 @@ jobs:
           from pathlib import Path
           import re
           import subprocess
+          import tempfile
 
           repository = 'https://github.com/atrinik/agent-integrations.git'
           records = json.loads(Path('plugins/atrinik-development/provenance.json').read_text())['local_authored_updates']
@@ -51,13 +52,7 @@ jobs:
                   if not isinstance(revision, str) or not re.fullmatch(r'[0-9a-f]{40}', revision):
                       raise ValueError('Expected full immutable provenance revision')
                   revisions.add(revision)
-          env = {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_LAZY_FETCH': '1'}
-          for revision in sorted(revisions):
-              subprocess.run(
-                  ['git', '-c', 'credential.helper=', '-c', 'http.extraHeader=',
-                   'fetch', '--no-tags', '--no-write-fetch-head', repository, revision],
-                  env=env, check=True, timeout=120,
-              )
+          revisions.add('38a3f01939c67e5172e4a7eedd8f6330e9339bbd')  # Immutable historical provenance anchor.
           root_repository = 'https://github.com/atrinik/atrinik.git'
           updates = json.loads(Path('plugins/atrinik-development/provenance.json').read_text())['current_file_updates']
           if not isinstance(updates, list) or not 1 <= len(updates) <= 8:
@@ -70,12 +65,34 @@ jobs:
               if not isinstance(revision, str) or not re.fullmatch(r'[0-9a-f]{40}', revision):
                   raise ValueError('Expected full immutable Root revision')
               root_revisions.add(revision)
-          for revision in sorted(root_revisions):
-              subprocess.run(
-                  ['git', '-c', 'credential.helper=', '-c', 'http.extraHeader=',
-                   'fetch', '--depth=1', '--no-tags', '--no-write-fetch-head', root_repository, revision],
-                  env=env, check=True, timeout=120,
-              )
+          env = {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_LAZY_FETCH': '1'}
+          verify_env = {key: value for key, value in env.items() if not key.startswith('GIT_')}
+          verify_env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull,
+                            GIT_TERMINAL_PROMPT='0', GIT_NO_LAZY_FETCH='1')
+          git = ['git', '--no-replace-objects', '-c', 'credential.helper=', '-c', 'http.extraHeader=']
+          for remote, requested in ((repository, revisions), (root_repository, root_revisions)):
+              for revision in sorted(requested):
+                  # A fresh store per SHA proves the remote serves it, even if checkout already has it.
+                  with tempfile.TemporaryDirectory(prefix='verified-provenance-') as temporary:
+                      subprocess.run(git + ['init', '--bare', temporary],
+                                     env=verify_env, check=True, timeout=30)
+                      isolated = git + ['--git-dir', temporary]
+                      subprocess.run(isolated + ['fetch', '--depth=1', '--no-tags', '--no-write-fetch-head', remote, revision],
+                                     env=verify_env, check=True, timeout=120)
+                      kind = subprocess.check_output(isolated + ['cat-file', '-t', revision],
+                                                     env=verify_env, timeout=30)
+                      if kind != b'commit\n':
+                          raise ValueError('Remote provenance identity is not a commit')
+                      # Import only verified objects; index-pack does not change refs or shallow history.
+                      with tempfile.TemporaryFile() as pack:
+                          subprocess.run(isolated + ['pack-objects', '--stdout', '--revs'],
+                                         input=(revision + '\n').encode(), stdout=pack,
+                                         env=verify_env, check=True, timeout=120)
+                          pack.seek(0)
+                          subprocess.run(git + ['index-pack', '--stdin'], stdin=pack,
+                                         env=env, check=True, timeout=120)
+                      subprocess.run(git + ['cat-file', '-e', revision + '^{commit}'],
+                                     env=env, check=True, timeout=30)
 
       - name: Select Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
