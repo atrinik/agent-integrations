@@ -29,3 +29,7 @@ provider revision, exact source/destination blobs, the public baseline and local
 transformations, and the contemporaneous provider MIT license. These snapshots
 do not claim a new wrapper origin, alter the original import identities, or pin
 the revision of the provenance record itself.
+
+Package validation resolves each local source, baseline and license claim from
+the provider's actual Git objects without network access. Missing commits or
+blobs fail validation; CI checks out full history with credentials disabled.

@@ -51,13 +51,44 @@ def git_blob(path: Path) -> str:
     return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
 
 
+def recorded_git_blob(revision: str, path: str) -> str:
+    env = {**os.environ, "GIT_NO_LAZY_FETCH": "1"}
+    try:
+        kind = subprocess.check_output(
+            ["git", "cat-file", "-t", revision], cwd=ROOT, env=env, stderr=subprocess.PIPE,
+        )
+        if kind != b"commit\n":
+            raise ValueError("Recorded revision is not a commit")
+        data = subprocess.check_output(
+            ["git", "cat-file", "blob", f"{revision}:{path}"],
+            cwd=ROOT, env=env, stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as error:
+        raise ValueError("Recorded Git commit or blob is unavailable") from error
+    return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+
+
 def validate_provenance_sources(provenance: dict) -> None:
+    wrapper = "https://github.com/atrinik/atrinik.git"
+    classic = "https://github.com/atrinik/classic.git"
     external = {key: value for key, value in provenance.items() if key != "local_authored_updates"}
-    if set(repository_values(external)) != {
-        "https://github.com/atrinik/atrinik.git",
-        "https://github.com/atrinik/classic.git",
-    }:
+    if set(repository_values(external)) != {wrapper, classic}:
         raise ValueError("Unexpected external provenance repository")
+    for category in ("imports", "current_file_updates"):
+        records = provenance.get(category, [])
+        if not records or any(record.get("repository") != wrapper
+                              or set(repository_values(record)) != {wrapper} for record in records):
+            raise ValueError("Unexpected wrapper provenance repository")
+    originals = provenance.get("original_work", [])
+    if not originals:
+        raise ValueError("Missing original work observations")
+    for original in originals:
+        observations = original.get("public_interface_observations", [])
+        if [record.get("repository") for record in observations] != [classic, wrapper]:
+            raise ValueError("Unexpected original work observation repository")
+        for record in observations:
+            if set(repository_values(record)) != {record["repository"]}:
+                raise ValueError("Unexpected nested observation repository")
     records = provenance.get("local_authored_updates", [])
     if len(records) != len(LOCAL_UPDATE_PATHS):
         raise ValueError("Missing or duplicate local update")
@@ -67,7 +98,8 @@ def validate_provenance_sources(provenance: dict) -> None:
         if path not in LOCAL_UPDATE_PATHS or path in seen:
             raise ValueError("Unexpected or duplicate local path")
         seen.add(path)
-        if set(repository_values(record)) != {"https://github.com/atrinik/agent-integrations.git"}:
+        if (record.get("repository") != "https://github.com/atrinik/agent-integrations.git"
+                or set(repository_values(record)) != {"https://github.com/atrinik/agent-integrations.git"}):
             raise ValueError("Unexpected local provenance repository")
         baseline, license_record = record["baseline"], record["license"]
         for value in (record["revision"], record["source_blob"], record["destination_blob"],
@@ -84,6 +116,13 @@ def validate_provenance_sources(provenance: dict) -> None:
                 or license_record["source_url"] != prefix + "LICENSE"
                 or license_record["blob"] != git_blob(ROOT / "LICENSE")):
             raise ValueError("Local MIT license mismatch")
+        for revision, source_path, expected in (
+            (record["revision"], record["source_path"], record["source_blob"]),
+            (baseline["revision"], baseline["path"], baseline["blob"]),
+            (record["revision"], license_record["path"], license_record["blob"]),
+        ):
+            if recorded_git_blob(revision, source_path) != expected:
+                raise ValueError("Recorded Git object does not match provenance")
         transformations = record["transformations"]
         if (not isinstance(transformations, list) or not transformations
                 or any(not isinstance(value, str) or not value.strip() for value in transformations)):
@@ -259,6 +298,46 @@ class PackageTests(unittest.TestCase):
                 mutate(candidate)
                 with self.assertRaises(ValueError):
                     validate_provenance_sources(candidate)
+
+    def test_provenance_rejects_unverified_git_objects_and_record_origins(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))
+
+        def change_source_revision(provenance: dict, revision: str) -> None:
+            record = provenance["local_authored_updates"][0]
+            old = record["revision"]
+            record["revision"] = revision
+            record["source_url"] = record["source_url"].replace(old, revision)
+            record["license"]["source_url"] = record["license"]["source_url"].replace(old, revision)
+
+        mutations = {
+            "nonexistent source commit": lambda p: change_source_revision(p, "0" * 40),
+            "source commit with different blob": lambda p: change_source_revision(p, p["local_authored_updates"][0]["baseline"]["revision"]),
+            "nonexistent baseline commit": lambda p: p["local_authored_updates"][0]["baseline"].update(revision="0" * 40),
+            "wrong baseline blob": lambda p: p["local_authored_updates"][0]["baseline"].update(blob="0" * 40),
+            "deleted import repository": lambda p: p["imports"][0].pop("repository"),
+            "deleted current repository": lambda p: p["current_file_updates"][0].pop("repository"),
+            "deleted local repository": lambda p: p["local_authored_updates"][0].pop("repository"),
+            "import relabeled Classic": lambda p: p["imports"][0].update(repository="https://github.com/atrinik/classic.git"),
+            "current relabeled Classic": lambda p: p["current_file_updates"][0].update(repository="https://github.com/atrinik/classic.git"),
+            "Classic observation relabeled wrapper": lambda p: p["original_work"][0]["public_interface_observations"][0].update(repository="https://github.com/atrinik/atrinik.git"),
+            "wrapper observation relabeled Classic": lambda p: p["original_work"][0]["public_interface_observations"][1].update(repository="https://github.com/atrinik/classic.git"),
+            "deleted observation repository": lambda p: p["original_work"][0]["public_interface_observations"][0].pop("repository"),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(case=name):
+                candidate = copy.deepcopy(original)
+                mutate(candidate)
+                with self.assertRaises(ValueError):
+                    validate_provenance_sources(candidate)
+
+    def test_recorded_git_blob_requires_commit_and_existing_blob(self) -> None:
+        record = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))["local_authored_updates"][0]
+        self.assertEqual(recorded_git_blob(record["revision"], record["source_path"]), record["source_blob"])
+        self.assertEqual(recorded_git_blob(record["revision"], "LICENSE"), record["license"]["blob"])
+        for revision, path in (("0" * 40, "LICENSE"), (record["source_blob"], "LICENSE"),
+                               (record["revision"], "missing-provenance-source")):
+            with self.subTest(revision=revision, path=path), self.assertRaises(ValueError):
+                recorded_git_blob(revision, path)
 
     def test_local_links_resolve_within_package(self) -> None:
         paths = sorted(PLUGIN.rglob("*.md"))
