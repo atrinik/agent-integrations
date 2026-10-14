@@ -58,6 +58,24 @@ jobs:
                    'fetch', '--no-tags', '--no-write-fetch-head', repository, revision],
                   env=env, check=True, timeout=120,
               )
+          root_repository = 'https://github.com/atrinik/atrinik.git'
+          updates = json.loads(Path('plugins/atrinik-development/provenance.json').read_text())['current_file_updates']
+          if not isinstance(updates, list) or not 1 <= len(updates) <= 8:
+              raise ValueError('Expected bounded Root provenance updates')
+          root_revisions = set()
+          for update in updates:
+              if update.get('repository') != root_repository:
+                  raise ValueError('Unexpected Root provenance repository')
+              revision = update['revision']
+              if not isinstance(revision, str) or not re.fullmatch(r'[0-9a-f]{40}', revision):
+                  raise ValueError('Expected full immutable Root revision')
+              root_revisions.add(revision)
+          for revision in sorted(root_revisions):
+              subprocess.run(
+                  ['git', '-c', 'credential.helper=', '-c', 'http.extraHeader=',
+                   'fetch', '--depth=1', '--no-tags', '--no-write-fetch-head', root_repository, revision],
+                  env=env, check=True, timeout=120,
+              )
 
       - name: Select Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

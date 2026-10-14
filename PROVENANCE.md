@@ -37,3 +37,9 @@ Because squash merges do not retain PR commits as main ancestors, CI also
 fetches the validated full local source/baseline commit IDs from the fixed
 public provider repository before running offline tests. Fetch failure fails
 validation; it does not substitute current files for the recorded Git objects.
+
+For external `current_file_updates`, CI shallow-fetches each validated full
+revision from the fixed public wrapper repository. Offline validation verifies
+the source and MIT license blobs, reconstructs the declared link edits, and
+checks every historical destination blob. It compares each destination's final
+update with the packaged bytes while preserving earlier chain records.

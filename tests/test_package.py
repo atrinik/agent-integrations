@@ -45,6 +45,12 @@ LOCAL_UPDATE_PATHS = {
     "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
     "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
 }
+CURRENT_UPDATE_PATHS = {
+    "docs/LINUX_EXECUTION.md": 2,
+    "docs/WINDOWS_GPU_PREFLIGHT.md": 1,
+}
+LINK_TRANSFORMATION = "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
+UNCHANGED_TRANSFORMATION = "Copied source bytes unchanged; all existing resource links remain package-relative."
 
 
 def git_blob(path: Path) -> str:
@@ -52,7 +58,7 @@ def git_blob(path: Path) -> str:
     return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
 
 
-def recorded_git_blob(revision: str, path: str) -> str:
+def recorded_git_bytes(revision: str, path: str) -> bytes:
     env = {**os.environ, "GIT_NO_LAZY_FETCH": "1"}
     try:
         kind = subprocess.check_output(
@@ -66,7 +72,66 @@ def recorded_git_blob(revision: str, path: str) -> str:
         )
     except subprocess.CalledProcessError as error:
         raise ValueError("Recorded Git commit or blob is unavailable") from error
+    return data
+
+
+def recorded_git_blob(revision: str, path: str) -> str:
+    data = recorded_git_bytes(revision, path)
     return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+
+
+def validate_current_updates(records: list[dict]) -> None:
+    chains = {path: [] for path in CURRENT_UPDATE_PATHS}
+    seen = set()
+    for record in records:
+        if set(record) != {"repository", "revision", "source_path", "destination_path",
+                           "source_blob", "destination_blob", "license", "transformations", "link_updates"}:
+            raise ValueError("Unexpected current update fields")
+        path = record["source_path"]
+        if path not in chains or record["destination_path"] != "plugins/atrinik-development/references/atrinik-workspace/" + path:
+            raise ValueError("Unexpected current update path")
+        license_record = record["license"]
+        if (set(license_record) != {"spdx", "path", "blob"}
+                or license_record["spdx"] != "MIT" or license_record["path"] != "LICENSE"):
+            raise ValueError("Unexpected current update license")
+        for value in (record["revision"], record["source_blob"], record["destination_blob"], license_record["blob"]):
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
+                raise ValueError("Nonimmutable current update identity")
+        identity = (path, record["revision"])
+        if identity in seen:
+            raise ValueError("Duplicate current update")
+        seen.add(identity)
+        source = recorded_git_bytes(record["revision"], path)
+        if recorded_git_blob(record["revision"], path) != record["source_blob"]:
+            raise ValueError("Current source blob mismatch")
+        license_bytes = recorded_git_bytes(record["revision"], "LICENSE")
+        if (recorded_git_blob(record["revision"], "LICENSE") != license_record["blob"]
+                or license_bytes != (PLUGIN / "LICENSE").read_bytes()):
+            raise ValueError("Current source MIT license mismatch")
+        text = source.decode("utf-8")
+        expected_links = []
+        # Only these out-of-package links are rewritten; packaged resource links stay relative.
+        for old, target in (("../README.md#pinned-build-and-runtime-containers", "README.md#pinned-build-and-runtime-containers"),
+                            ("NATIVE_LINUX_TOOLCHAIN.md", "docs/NATIVE_LINUX_TOOLCHAIN.md"),
+                            ("../README.md", "README.md")):
+            if f"]({old})" in text:
+                new = f"https://github.com/atrinik/atrinik/blob/{record['revision']}/{target}"
+                expected_links.append({"source_target": old, "destination_target": new})
+                text = text.replace(f"]({old})", f"]({new})")
+        expected_description = LINK_TRANSFORMATION if expected_links else UNCHANGED_TRANSFORMATION
+        if record["link_updates"] != expected_links or record["transformations"] != [expected_description]:
+            raise ValueError("Unsupported or missing current link transformations")
+        destination = text.encode("utf-8")
+        actual_blob = hashlib.sha1(b"blob " + str(len(destination)).encode() + b"\0" + destination).hexdigest()
+        if actual_blob != record["destination_blob"]:
+            raise ValueError("Reconstructed current destination blob mismatch")
+        chains[path].append((record, destination))
+    for path, minimum in CURRENT_UPDATE_PATHS.items():
+        if len(chains[path]) < minimum:
+            raise ValueError("Missing retained current update chain")
+        record, destination = chains[path][-1]
+        if (ROOT / record["destination_path"]).read_bytes() != destination:
+            raise ValueError("Terminal current update does not match package")
 
 
 def validate_provenance_sources(provenance: dict) -> None:
@@ -80,6 +145,7 @@ def validate_provenance_sources(provenance: dict) -> None:
         if not records or any(record.get("repository") != wrapper
                               or set(repository_values(record)) != {wrapper} for record in records):
             raise ValueError("Unexpected wrapper provenance repository")
+    validate_current_updates(provenance["current_file_updates"])
     originals = provenance.get("original_work", [])
     if not originals:
         raise ValueError("Missing original work observations")
@@ -331,6 +397,35 @@ class PackageTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_provenance_sources(candidate)
 
+    def test_current_provenance_rejects_corrupt_objects_links_and_chains(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text())
+        mutations = {
+            "missing source commit": lambda p: p["current_file_updates"][0].update(revision="0" * 40),
+            "short source commit": lambda p: p["current_file_updates"][0].update(revision="a9661a2"),
+            "wrong source blob": lambda p: p["current_file_updates"][0].update(source_blob="0" * 40),
+            "wrong source path": lambda p: p["current_file_updates"][0].update(source_path="docs/COORDINATOR_AUTH.md"),
+            "outside destination": lambda p: p["current_file_updates"][0].update(destination_path="../foreign.md"),
+            "wrong destination blob": lambda p: p["current_file_updates"][0].update(destination_blob="0" * 40),
+            "wrong SPDX": lambda p: p["current_file_updates"][0]["license"].update(spdx="GPL-2.0-or-later"),
+            "wrong license blob": lambda p: p["current_file_updates"][0]["license"].update(blob="0" * 40),
+            "wrong license path": lambda p: p["current_file_updates"][0]["license"].update(path="README.md"),
+            "wrong source link": lambda p: p["current_file_updates"][0]["link_updates"][0].update(source_target="../foreign.md"),
+            "wrong destination link": lambda p: p["current_file_updates"][0]["link_updates"][0].update(destination_target="https://example.com/foreign"),
+            "missing link edit": lambda p: p["current_file_updates"][0]["link_updates"].pop(),
+            "wrong transformation": lambda p: p["current_file_updates"][0].update(transformations=["Unrecorded byte changes"]),
+            "missing old Linux chain entry": lambda p: p["current_file_updates"].pop(0),
+            "missing terminal Linux chain entry": lambda p: p["current_file_updates"].pop(),
+            "missing Windows entry": lambda p: p["current_file_updates"].pop(1),
+            "duplicate update": lambda p: p["current_file_updates"].append(copy.deepcopy(p["current_file_updates"][0])),
+            "reversed chain": lambda p: p["current_file_updates"].reverse(),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(case=name):
+                candidate = copy.deepcopy(original)
+                mutate(candidate)
+                with self.assertRaises(ValueError):
+                    validate_provenance_sources(candidate)
+
     def test_recorded_git_blob_requires_commit_and_existing_blob(self) -> None:
         record = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))["local_authored_updates"][0]
         self.assertEqual(recorded_git_blob(record["revision"], record["source_path"]), record["source_blob"])
@@ -346,13 +441,16 @@ class PackageTests(unittest.TestCase):
         block = block.split("        run: |\n", 1)[1].split("\n      - name:", 1)[0]
         script = "\n".join(line[10:] for line in block.splitlines()) + "\n"
         canonical = "repository = 'https://github.com/atrinik/agent-integrations.git'"
+        root_canonical = "root_repository = 'https://github.com/atrinik/atrinik.git'"
         self.assertIn(canonical, script)
+        self.assertIn(root_canonical, script)
         provenance = json.loads((PLUGIN / "provenance.json").read_text())
         source = provenance["local_authored_updates"][0]["revision"]
         baseline = provenance["local_authored_updates"][0]["baseline"]["revision"]
         env = {**os.environ, "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
                "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
                "GIT_TERMINAL_PROMPT": "0", "GIT_NO_LAZY_FETCH": "1"}
+        env.pop("GIT_ALTERNATE_OBJECT_DIRECTORIES", None)
 
         def git(directory: Path, *args: str) -> str:
             return subprocess.check_output(["git", *args], cwd=directory, env=env,
@@ -360,6 +458,15 @@ class PackageTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory(prefix="provenance-squash-") as temporary:
             origin, checkout = Path(temporary) / "origin", Path(temporary) / "checkout"
+            root_origin = Path(temporary) / "root-origin"
+            root_origin.mkdir()
+            git(root_origin, "init")
+            root_revisions = {record["revision"] for record in provenance["current_file_updates"]}
+            provider_objects = Path(git(ROOT, "rev-parse", "--git-path", "objects"))
+            if not provider_objects.is_absolute():
+                provider_objects = ROOT / provider_objects
+            object_sources = [str(provider_objects), *filter(None, os.environ.get("GIT_ALTERNATE_OBJECT_DIRECTORIES", "").split(os.pathsep))]
+            (root_origin / ".git/objects/info/alternates").write_text("\n".join(object_sources) + "\n")
             origin.mkdir()
             git(origin, "init")
             git(origin, "fetch", "--no-tags", str(ROOT), "HEAD")
@@ -370,18 +477,25 @@ class PackageTests(unittest.TestCase):
             missing = subprocess.run(["git", "cat-file", "-e", source], cwd=checkout,
                                      env=env, capture_output=True)
             self.assertNotEqual(missing.returncode, 0)
+            for revision in root_revisions:
+                missing = subprocess.run(["git", "cat-file", "-e", revision], cwd=checkout,
+                                         env=env, capture_output=True)
+                self.assertNotEqual(missing.returncode, 0)
             # Use only a controlled local source in this fixture; CI keeps the fixed public URL.
             local_script = script.replace(canonical, f"repository = {str(ROOT)!r}")
+            local_script = local_script.replace(root_canonical, f"root_repository = {str(root_origin)!r}")
             # Records retain the public identity while transport is replaced for this offline fixture.
             local_script = local_script.replace("record.get('repository') != repository",
                                                 "record.get('repository') != 'https://github.com/atrinik/agent-integrations.git'")
+            local_script = local_script.replace("update.get('repository') != root_repository",
+                                                "update.get('repository') != 'https://github.com/atrinik/atrinik.git'")
             subprocess.run([sys.executable, "-B", "-c", local_script], cwd=checkout,
                            env=env, check=True, capture_output=True)
             self.assertEqual(git(checkout, "cat-file", "-t", source), "commit")
             subprocess.run([sys.executable, "-B", "-m", "unittest",
                             "tests.test_package.PackageTests.test_installed_package_retains_license_and_provenance"],
                            cwd=checkout, env=env, check=True, capture_output=True)
-            # A unavailable exact commit must fail hydration rather than silently using current files.
+            # An unavailable exact commit must fail hydration rather than silently using current files.
             record_path = checkout / "plugins/atrinik-development/provenance.json"
             invalid = json.loads(record_path.read_text())
             invalid["local_authored_updates"][0]["revision"] = "0" * 40
