@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,10 +46,9 @@ LOCAL_UPDATE_PATHS = {
     "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
     "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
 }
-CURRENT_UPDATE_PATHS = {
-    "docs/LINUX_EXECUTION.md": 2,
-    "docs/WINDOWS_GPU_PREFLIGHT.md": 1,
-}
+CURRENT_UPDATE_PATHS = {"docs/LINUX_EXECUTION.md", "docs/WINDOWS_GPU_PREFLIGHT.md"}
+PROVENANCE_BASELINE = "38a3f01939c67e5172e4a7eedd8f6330e9339bbd"
+PROVENANCE_PATH = "plugins/atrinik-development/provenance.json"
 LINK_TRANSFORMATION = "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
 UNCHANGED_TRANSFORMATION = "Copied source bytes unchanged; all existing resource links remain package-relative."
 
@@ -81,6 +81,10 @@ def recorded_git_blob(revision: str, path: str) -> str:
 
 
 def validate_current_updates(records: list[dict]) -> None:
+    baseline = json.loads(recorded_git_bytes(PROVENANCE_BASELINE, PROVENANCE_PATH))
+    anchors = baseline.get("current_file_updates")
+    if not isinstance(anchors, list) or not anchors or records[:len(anchors)] != anchors:
+        raise ValueError("Historical current update prefix differs from immutable provider baseline")
     chains = {path: [] for path in CURRENT_UPDATE_PATHS}
     seen = set()
     for record in records:
@@ -126,8 +130,8 @@ def validate_current_updates(records: list[dict]) -> None:
         if actual_blob != record["destination_blob"]:
             raise ValueError("Reconstructed current destination blob mismatch")
         chains[path].append((record, destination))
-    for path, minimum in CURRENT_UPDATE_PATHS.items():
-        if len(chains[path]) < minimum:
+    for path in CURRENT_UPDATE_PATHS:
+        if not chains[path]:
             raise ValueError("Missing retained current update chain")
         record, destination = chains[path][-1]
         if (ROOT / record["destination_path"]).read_bytes() != destination:
@@ -426,6 +430,28 @@ class PackageTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_provenance_sources(candidate)
 
+    def test_current_provenance_retains_actual_immutable_baseline_prefix(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text())
+        baseline = json.loads(recorded_git_bytes(PROVENANCE_BASELINE, PROVENANCE_PATH))
+        anchors = baseline["current_file_updates"]
+        self.assertEqual(original["current_file_updates"][:len(anchors)], anchors)
+        # A different trusted Root snapshot can reproduce the exact current Windows bytes.
+        alternative = copy.deepcopy(original)
+        record = alternative["current_file_updates"][1]
+        revision = original["current_file_updates"][-1]["revision"]
+        record["revision"] = revision
+        record["source_blob"] = recorded_git_blob(revision, record["source_path"])
+        record["destination_blob"] = record["source_blob"]
+        record["license"]["blob"] = recorded_git_blob(revision, "LICENSE")
+        self.assertEqual(recorded_git_bytes(revision, record["source_path"]),
+                         (ROOT / record["destination_path"]).read_bytes())
+        with self.assertRaises(ValueError):
+            validate_provenance_sources(alternative)
+        for bad in ("0" * 40, recorded_git_blob(PROVENANCE_BASELINE, PROVENANCE_PATH)):
+            with self.subTest(anchor=bad), patch(__name__ + ".PROVENANCE_BASELINE", bad):
+                with self.assertRaises(ValueError):
+                    validate_provenance_sources(original)
+
     def test_recorded_git_blob_requires_commit_and_existing_blob(self) -> None:
         record = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))["local_authored_updates"][0]
         self.assertEqual(recorded_git_blob(record["revision"], record["source_path"]), record["source_blob"])
@@ -474,6 +500,10 @@ class PackageTests(unittest.TestCase):
             squash = git(origin, "commit-tree", tree, "-p", baseline, "-m", "Synthetic squash")
             git(origin, "update-ref", "refs/heads/main", squash)
             git(origin, "clone", "--no-local", "--single-branch", "--branch", "main", str(origin), str(checkout))
+            anchor_blob = git(ROOT, "rev-parse", f"{PROVENANCE_BASELINE}:{PROVENANCE_PATH}")
+            missing_anchor = subprocess.run(["git", "cat-file", "-e", PROVENANCE_BASELINE],
+                                            cwd=checkout, env=env, capture_output=True)
+            self.assertNotEqual(missing_anchor.returncode, 0)
             missing = subprocess.run(["git", "cat-file", "-e", source], cwd=checkout,
                                      env=env, capture_output=True)
             self.assertNotEqual(missing.returncode, 0)
@@ -492,6 +522,7 @@ class PackageTests(unittest.TestCase):
             subprocess.run([sys.executable, "-B", "-c", local_script], cwd=checkout,
                            env=env, check=True, capture_output=True)
             self.assertEqual(git(checkout, "cat-file", "-t", source), "commit")
+            self.assertEqual(git(checkout, "rev-parse", f"{PROVENANCE_BASELINE}:{PROVENANCE_PATH}"), anchor_blob)
             subprocess.run([sys.executable, "-B", "-m", "unittest",
                             "tests.test_package.PackageTests.test_installed_package_retains_license_and_provenance"],
                            cwd=checkout, env=env, check=True, capture_output=True)

@@ -43,3 +43,6 @@ revision from the fixed public wrapper repository. Offline validation verifies
 the source and MIT license blobs, reconstructs the declared link edits, and
 checks every historical destination blob. It compares each destination's final
 update with the packaged bytes while preserving earlier chain records.
+The original ordered update prefix is anchored field-for-field as JSON records
+to the actual provenance Git blob at public provider baseline
+`38a3f01939c67e5172e4a7eedd8f6330e9339bbd`; later updates may append to that prefix.
