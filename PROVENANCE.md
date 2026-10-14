@@ -22,3 +22,10 @@ and retaining the historical skill path solely for accepted older wrappers.
 The three Classic skills are new MIT work and have separate authorship entries
 in the plugin provenance record; they do not inherit the imported wrapper
 provenance.
+
+The `local_authored_updates` records distinguish later provider-authored edits
+from the original wrapper import. Each records an already-public immutable
+provider revision, exact source/destination blobs, the public baseline and local
+transformations, and the contemporaneous provider MIT license. These snapshots
+do not claim a new wrapper origin, alter the original import identities, or pin
+the revision of the provenance record itself.

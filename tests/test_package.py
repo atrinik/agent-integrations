@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -38,6 +40,54 @@ IMPORTED_SKILLS = EXPECTED_SKILLS - CLASSIC_SKILLS
 MAX_IMPORTED_CATALOG_BYTES = 2_250
 MAX_IMPORTED_SKILL_BYTES = 62_500
 LINK = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+LOCAL_UPDATE_PATHS = {
+    "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
+    "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
+}
+
+
+def git_blob(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+
+
+def validate_provenance_sources(provenance: dict) -> None:
+    external = {key: value for key, value in provenance.items() if key != "local_authored_updates"}
+    if set(repository_values(external)) != {
+        "https://github.com/atrinik/atrinik.git",
+        "https://github.com/atrinik/classic.git",
+    }:
+        raise ValueError("Unexpected external provenance repository")
+    records = provenance.get("local_authored_updates", [])
+    if len(records) != len(LOCAL_UPDATE_PATHS):
+        raise ValueError("Missing or duplicate local update")
+    seen = set()
+    for record in records:
+        path = record["destination_path"]
+        if path not in LOCAL_UPDATE_PATHS or path in seen:
+            raise ValueError("Unexpected or duplicate local path")
+        seen.add(path)
+        if set(repository_values(record)) != {"https://github.com/atrinik/agent-integrations.git"}:
+            raise ValueError("Unexpected local provenance repository")
+        baseline, license_record = record["baseline"], record["license"]
+        for value in (record["revision"], record["source_blob"], record["destination_blob"],
+                      baseline["revision"], baseline["blob"], license_record["blob"]):
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
+                raise ValueError("Nonimmutable Git identity")
+        prefix = f"https://github.com/atrinik/agent-integrations/blob/{record['revision']}/"
+        if (record["source_path"] != path or baseline["path"] != path
+                or record["source_url"] != prefix + path
+                or record["source_blob"] != record["destination_blob"]
+                or record["destination_blob"] != git_blob(ROOT / path)):
+            raise ValueError("Local source or destination mismatch")
+        if (license_record["spdx"] != "MIT" or license_record["path"] != "LICENSE"
+                or license_record["source_url"] != prefix + "LICENSE"
+                or license_record["blob"] != git_blob(ROOT / "LICENSE")):
+            raise ValueError("Local MIT license mismatch")
+        transformations = record["transformations"]
+        if (not isinstance(transformations, list) or not transformations
+                or any(not isinstance(value, str) or not value.strip() for value in transformations)):
+            raise ValueError("Missing local transformations")
 
 
 def frontmatter(path: Path) -> dict[str, str]:
@@ -184,15 +234,31 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(len(imported["skills"]), 12)
         self.assertEqual(len(imported["resources"]), 5)
         self.assertEqual(len(provenance["original_work"]), 3)
-        self.assertEqual(
-            set(repository_values(provenance)),
-            {
-                "https://github.com/atrinik/atrinik.git",
-                "https://github.com/atrinik/classic.git",
-            },
-        )
+        validate_provenance_sources(provenance)
         for item in provenance["original_work"]:
             self.assertIn("atrinik/agent-integrations", item["origin"])
+
+    def test_local_provenance_rejects_invalid_sources(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))
+        mutations = {
+            "wrong repository": lambda p: p["local_authored_updates"][0].update(repository="https://example.com/foreign.git"),
+            "wrong category": lambda p: p["current_file_updates"].append(p["local_authored_updates"].pop()),
+            "duplicate path": lambda p: p["local_authored_updates"].__setitem__(1, copy.deepcopy(p["local_authored_updates"][0])),
+            "outside package": lambda p: p["local_authored_updates"][0].update(destination_path="../foreign.md"),
+            "short revision": lambda p: p["local_authored_updates"][0].update(revision="f723d04"),
+            "wrong URL": lambda p: p["local_authored_updates"][0].update(source_url="https://example.com/source"),
+            "wrong baseline path": lambda p: p["local_authored_updates"][0]["baseline"].update(path="LICENSE"),
+            "wrong blob": lambda p: p["local_authored_updates"][0].update(source_blob="0" * 40, destination_blob="0" * 40),
+            "wrong license": lambda p: p["local_authored_updates"][0]["license"].update(spdx="GPL-2.0-or-later"),
+            "wrong license blob": lambda p: p["local_authored_updates"][0]["license"].update(blob="0" * 40),
+            "missing transformations": lambda p: p["local_authored_updates"][0].update(transformations=[]),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(case=name):
+                candidate = copy.deepcopy(original)
+                mutate(candidate)
+                with self.assertRaises(ValueError):
+                    validate_provenance_sources(candidate)
 
     def test_local_links_resolve_within_package(self) -> None:
         paths = sorted(PLUGIN.rglob("*.md"))
