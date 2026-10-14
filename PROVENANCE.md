@@ -22,3 +22,40 @@ and retaining the historical skill path solely for accepted older wrappers.
 The three Classic skills are new MIT work and have separate authorship entries
 in the plugin provenance record; they do not inherit the imported wrapper
 provenance.
+
+The `local_authored_updates` records distinguish later provider-authored edits
+from the original wrapper import. Each records an already-public immutable
+provider revision, exact source/destination blobs, the public baseline and local
+transformations, and the contemporaneous provider MIT license. These snapshots
+do not claim a new wrapper origin, alter the original import identities, or pin
+the revision of the provenance record itself.
+
+Package validation resolves each local source, baseline and license claim from
+the provider's actual Git objects without network access. Missing commits or
+blobs fail validation; CI checks out full history with credentials disabled.
+Because squash merges do not retain PR commits as main ancestors, CI also
+fetches the validated full local source/baseline commit IDs from the fixed
+public provider repository before running offline tests. Fetch failure fails
+validation; it does not substitute current files for the recorded Git objects.
+
+For external `current_file_updates`, CI shallow-fetches each validated full
+revision from the fixed public wrapper repository. Offline validation verifies
+the source and MIT license blobs, reconstructs the declared link edits, and
+checks every historical destination blob. It compares each destination's final
+update with the packaged bytes while preserving earlier chain records.
+The original ordered update prefix is anchored field-for-field as JSON records
+to the actual provenance Git blob at public provider baseline
+`38a3f01939c67e5172e4a7eedd8f6330e9339bbd`; later updates may append to that prefix.
+
+CI verifies each source, baseline and anchor commit against its fixed public
+repository in a fresh temporary Git object store before importing it. The
+verification store excludes checkout objects, inherited object directories and
+alternates, so a cached local commit cannot mask an unavailable remote object.
+
+Remote availability alone does not establish reviewed history. Source-controlled
+policy admits only the independently reviewed immutable provider source `f723d04`,
+baseline `0401a87`, anchor `38a3f01`, and wrapper updates `a9661a2` and `8b00b5b`;
+the executable policy uses full commit IDs. CI rejects other IDs before fetching.
+Offline validation additionally restricts each approved ID to its reviewed role
+and source paths. Adding an ID or changing its role requires an independently
+reviewed source policy change; editing provenance metadata cannot expand trust.

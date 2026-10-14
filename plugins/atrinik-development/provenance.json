@@ -213,5 +213,134 @@
         "No source-license conversion is claimed."
       ]
     }
+  ],
+  "current_file_updates": [
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "a9661a2bd978107fe4e01e45b2e22fcd1e2d095c",
+      "source_path": "docs/LINUX_EXECUTION.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/LINUX_EXECUTION.md",
+      "source_blob": "01c111fc459aee8aa1a9dfea5d1a879bfc28896a",
+      "destination_blob": "b3b62cf016cc620228e258331fc83fd4ac37884b",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
+      ],
+      "link_updates": [
+        {
+          "source_target": "../README.md#pinned-build-and-runtime-containers",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md#pinned-build-and-runtime-containers"
+        },
+        {
+          "source_target": "NATIVE_LINUX_TOOLCHAIN.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/docs/NATIVE_LINUX_TOOLCHAIN.md"
+        },
+        {
+          "source_target": "../README.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/a9661a2bd978107fe4e01e45b2e22fcd1e2d095c/README.md"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "a9661a2bd978107fe4e01e45b2e22fcd1e2d095c",
+      "source_path": "docs/WINDOWS_GPU_PREFLIGHT.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/WINDOWS_GPU_PREFLIGHT.md",
+      "source_blob": "d39140ce9ebb362fa71f512accce3955ae2b2903",
+      "destination_blob": "d39140ce9ebb362fa71f512accce3955ae2b2903",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Copied source bytes unchanged; all existing resource links remain package-relative."
+      ],
+      "link_updates": []
+    },
+    {
+      "repository": "https://github.com/atrinik/atrinik.git",
+      "revision": "8b00b5b3b44f1230b5df97715b613a68150e5a68",
+      "source_path": "docs/LINUX_EXECUTION.md",
+      "destination_path": "plugins/atrinik-development/references/atrinik-workspace/docs/LINUX_EXECUTION.md",
+      "source_blob": "7a43aa398f6478c7e4e11e4632b417b524fbaf0e",
+      "destination_blob": "ccbd6df60204b1edad734b3c0d56871547457139",
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2"
+      },
+      "transformations": [
+        "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
+      ],
+      "link_updates": [
+        {
+          "source_target": "../README.md#pinned-build-and-runtime-containers",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md#pinned-build-and-runtime-containers"
+        },
+        {
+          "source_target": "NATIVE_LINUX_TOOLCHAIN.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/docs/NATIVE_LINUX_TOOLCHAIN.md"
+        },
+        {
+          "source_target": "../README.md",
+          "destination_target": "https://github.com/atrinik/atrinik/blob/8b00b5b3b44f1230b5df97715b613a68150e5a68/README.md"
+        }
+      ]
+    }
+  ],
+  "local_authored_updates": [
+    {
+      "repository": "https://github.com/atrinik/agent-integrations.git",
+      "revision": "f723d04a095e8e8d44d54b5ca6a85475f2713912",
+      "source_path": "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
+      "source_url": "https://github.com/atrinik/agent-integrations/blob/f723d04a095e8e8d44d54b5ca6a85475f2713912/plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
+      "source_blob": "d33f886693485bdc6d699c2acc16825b166e939d",
+      "destination_path": "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
+      "destination_blob": "d33f886693485bdc6d699c2acc16825b166e939d",
+      "baseline": {
+        "revision": "0401a87fe0e8f87bf7783e9d040d717d28afff23",
+        "path": "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
+        "blob": "eb33af28d88dd01757d802b3317f0e3a4620c118"
+      },
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2",
+        "source_url": "https://github.com/atrinik/agent-integrations/blob/f723d04a095e8e8d44d54b5ca6a85475f2713912/LICENSE"
+      },
+      "transformations": [
+        "Locally authored update from the recorded baseline: require LLVM 23.1.3 executable roles, compiler-rt and libunwind for native Linux qualification; select the candidate cmake/toolchains/llvm.cmake in the fresh GPU build command.",
+        "Retained all other qualification text, links and authority boundaries; no hardware, audible or human golden qualification is claimed."
+      ]
+    },
+    {
+      "repository": "https://github.com/atrinik/agent-integrations.git",
+      "revision": "f723d04a095e8e8d44d54b5ca6a85475f2713912",
+      "source_path": "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
+      "source_url": "https://github.com/atrinik/agent-integrations/blob/f723d04a095e8e8d44d54b5ca6a85475f2713912/plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
+      "source_blob": "e9ae25924fef108d33a335a57b80cdd8f2ace623",
+      "destination_path": "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
+      "destination_blob": "e9ae25924fef108d33a335a57b80cdd8f2ace623",
+      "baseline": {
+        "revision": "0401a87fe0e8f87bf7783e9d040d717d28afff23",
+        "path": "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
+        "blob": "3f9f8d075a6b90cc159a3b1d1ca687b29d8360d0"
+      },
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2",
+        "source_url": "https://github.com/atrinik/agent-integrations/blob/f723d04a095e8e8d44d54b5ca6a85475f2713912/LICENSE"
+      },
+      "transformations": [
+        "Locally authored wording compression from the recorded baseline: shortened diagnostics, source routing, workspace selection and handoff prose by 120 bytes.",
+        "Preserved every Markdown link and shell command block, and all ownership, authority, lease, cleanup, runtime, host-authentication and provenance conditions."
+      ]
+    }
   ]
 }

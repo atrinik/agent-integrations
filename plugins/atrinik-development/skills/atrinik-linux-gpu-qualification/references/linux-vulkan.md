@@ -27,7 +27,12 @@ existing worktree, context, ledger, CAS, and lease checks. Do not invent a local
 lock file or borrow a CPU-worker recipe as a GPU reservation.
 
 Confirm `cmake`, Ninja, Python 3, the candidate's required development libraries,
-a visible SDL-compatible display, and a Vulkan loader/device are present. Keep
+a visible SDL-compatible display, and a Vulkan loader/device are present. The
+native Linux build also requires LLVM 23.1.3: `clang`, `clang++`, `ld.lld`,
+`llvm-ar`, `llvm-ranlib`, `llvm-nm`, `llvm-strip`, `llvm-objcopy`, `llvm-objdump`,
+and `llvm-readelf` must resolve on `PATH`, with compiler-rt and libunwind
+available for linking. The candidate's `cmake/toolchains/llvm.cmake` validates
+the tool versions; use it for the fresh build below. Keep
 package installation, runner setup, and privileged host changes separate and
 explicitly authorized. The Classic workflow is the canonical package-independent
 description of the build and run.
@@ -60,6 +65,7 @@ Use a fresh task-owned build directory and the shader output produced above:
 
 ```sh
 cmake -S client -B "$GPU_BUILD" -G Ninja \
+  "-DCMAKE_TOOLCHAIN_FILE=$CLASSIC_ROOT/cmake/toolchains/llvm.cmake" \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTING=ON \
   -DATRINIK_GPU_CONFORMANCE_REQUIRED=ON \
