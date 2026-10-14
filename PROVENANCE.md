@@ -51,3 +51,11 @@ CI verifies each source, baseline and anchor commit against its fixed public
 repository in a fresh temporary Git object store before importing it. The
 verification store excludes checkout objects, inherited object directories and
 alternates, so a cached local commit cannot mask an unavailable remote object.
+
+Remote availability alone does not establish reviewed history. Source-controlled
+policy admits only the independently reviewed immutable provider source `f723d04`,
+baseline `0401a87`, anchor `38a3f01`, and wrapper updates `a9661a2` and `8b00b5b`;
+the executable policy uses full commit IDs. CI rejects other IDs before fetching.
+Offline validation additionally restricts each approved ID to its reviewed role
+and source paths. Adding an ID or changing its role requires an independently
+reviewed source policy change; editing provenance metadata cannot expand trust.

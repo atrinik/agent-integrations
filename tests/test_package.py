@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import ast
 import hashlib
 import json
 import os
@@ -49,6 +50,16 @@ LOCAL_UPDATE_PATHS = {
 CURRENT_UPDATE_PATHS = {"docs/LINUX_EXECUTION.md", "docs/WINDOWS_GPU_PREFLIGHT.md"}
 PROVENANCE_BASELINE = "38a3f01939c67e5172e4a7eedd8f6330e9339bbd"
 PROVENANCE_PATH = "plugins/atrinik-development/provenance.json"
+LOCAL_SOURCE_REVISION = "f723d04a095e8e8d44d54b5ca6a85475f2713912"
+LOCAL_BASELINE_REVISION = "0401a87fe0e8f87bf7783e9d040d717d28afff23"
+CURRENT_UPDATE_REVISIONS = {
+    "docs/LINUX_EXECUTION.md": {"a9661a2bd978107fe4e01e45b2e22fcd1e2d095c", "8b00b5b3b44f1230b5df97715b613a68150e5a68"},
+    "docs/WINDOWS_GPU_PREFLIGHT.md": {"a9661a2bd978107fe4e01e45b2e22fcd1e2d095c"},
+}
+APPROVED_PROVENANCE_REVISIONS = {
+    "https://github.com/atrinik/agent-integrations.git": {LOCAL_SOURCE_REVISION, LOCAL_BASELINE_REVISION, PROVENANCE_BASELINE},
+    "https://github.com/atrinik/atrinik.git": set().union(*CURRENT_UPDATE_REVISIONS.values()),
+}
 LINK_TRANSFORMATION = "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
 UNCHANGED_TRANSFORMATION = "Copied source bytes unchanged; all existing resource links remain package-relative."
 
@@ -101,6 +112,8 @@ def validate_current_updates(records: list[dict]) -> None:
         for value in (record["revision"], record["source_blob"], record["destination_blob"], license_record["blob"]):
             if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
                 raise ValueError("Nonimmutable current update identity")
+        if record["revision"] not in CURRENT_UPDATE_REVISIONS[path]:
+            raise ValueError("Unapproved current update revision for source path")
         identity = (path, record["revision"])
         if identity in seen:
             raise ValueError("Duplicate current update")
@@ -177,6 +190,8 @@ def validate_provenance_sources(provenance: dict) -> None:
                       baseline["revision"], baseline["blob"], license_record["blob"]):
             if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
                 raise ValueError("Nonimmutable Git identity")
+        if record["revision"] != LOCAL_SOURCE_REVISION or baseline["revision"] != LOCAL_BASELINE_REVISION:
+            raise ValueError("Unapproved local provenance revision for source or baseline role")
         prefix = f"https://github.com/atrinik/agent-integrations/blob/{record['revision']}/"
         if (record["source_path"] != path or baseline["path"] != path
                 or record["source_url"] != prefix + path
@@ -451,6 +466,98 @@ class PackageTests(unittest.TestCase):
             with self.subTest(anchor=bad), patch(__name__ + ".PROVENANCE_BASELINE", bad):
                 with self.assertRaises(ValueError):
                     validate_provenance_sources(original)
+
+    def test_ci_approved_revision_policy_matches_offline_roles(self) -> None:
+        workflow = (ROOT / ".github/workflows/validate.yml").read_text()
+        block = workflow.split("      - name: Fetch immutable local provenance objects\n", 1)[1]
+        block = block.split("        run: |\n", 1)[1].split("\n      - name:", 1)[0]
+        script = "\n".join(line[10:] for line in block.splitlines())
+        policies = [node.value for node in ast.parse(script).body if isinstance(node, ast.Assign)
+                    and any(isinstance(target, ast.Name) and target.id == "approved" for target in node.targets)]
+        self.assertEqual(len(policies), 1)
+        self.assertEqual(ast.literal_eval(policies[0]), APPROVED_PROVENANCE_REVISIONS)
+
+    def test_reviewed_provenance_policy_rejects_unapproved_pr_snapshot(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text())
+        env = {**os.environ, "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+               "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+               "GIT_TERMINAL_PROMPT": "0", "GIT_NO_LAZY_FETCH": "1"}
+        env.pop("GIT_ALTERNATE_OBJECT_DIRECTORIES", None)
+
+        def git(directory: Path, *args: str) -> str:
+            return subprocess.check_output(["git", *args], cwd=directory, env=env,
+                                           stderr=subprocess.PIPE, text=True).strip()
+
+        with tempfile.TemporaryDirectory(prefix="unapproved-pr-snapshot-") as temporary:
+            remote, workspace, quarantine = (Path(temporary) / name for name in ("remote", "workspace", "quarantine"))
+            remote.mkdir()
+            git(remote, "init")
+            git(remote, "fetch", "--update-shallow", "--no-tags", str(ROOT), "HEAD")
+            # Fetch the approved source explicitly when ROOT itself is a freshly hydrated squash checkout.
+            git(remote, "fetch", "--depth=1", "--no-tags", str(ROOT), LOCAL_SOURCE_REVISION)
+            tree = git(remote, "rev-parse", LOCAL_SOURCE_REVISION + "^{tree}")
+            snapshot = git(remote, "commit-tree", tree, "-p", LOCAL_BASELINE_REVISION, "-m", "Synthetic unreviewed PR snapshot")
+            git(remote, "update-ref", "refs/pull/123/head", snapshot)
+            self.assertNotIn(snapshot, APPROVED_PROVENANCE_REVISIONS["https://github.com/atrinik/agent-integrations.git"])
+            quarantine.mkdir()
+            git(quarantine, "init", "--bare")
+            git(quarantine, "fetch", "--depth=1", "--no-tags", str(remote), snapshot)
+            self.assertEqual(git(quarantine, "cat-file", "-t", snapshot), "commit")
+            candidate = copy.deepcopy(original)
+            record = candidate["local_authored_updates"][0]
+            old = record["revision"]
+            record["revision"] = snapshot
+            record["source_url"] = record["source_url"].replace(old, snapshot)
+            record["license"]["source_url"] = record["license"]["source_url"].replace(old, snapshot)
+            self.assertEqual(git(quarantine, "rev-parse", snapshot + ":" + record["source_path"]), record["source_blob"])
+            self.assertEqual(git(quarantine, "rev-parse", snapshot + ":LICENSE"), record["license"]["blob"])
+            with self.assertRaisesRegex(ValueError, "Unapproved local provenance revision"):
+                validate_provenance_sources(candidate)
+            path = workspace / PROVENANCE_PATH
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(candidate))
+            workflow = (ROOT / ".github/workflows/validate.yml").read_text()
+            block = workflow.split("      - name: Fetch immutable local provenance objects\n", 1)[1]
+            block = block.split("        run: |\n", 1)[1].split("\n      - name:", 1)[0]
+            script = "\n".join(line[10:] for line in block.splitlines()) + "\n"
+            script = script.replace("repository = 'https://github.com/atrinik/agent-integrations.git'", f"repository = {str(remote)!r}")
+            script = script.replace("record.get('repository') != repository", "record.get('repository') != 'https://github.com/atrinik/agent-integrations.git'")
+            refused = subprocess.run([sys.executable, "-B", "-c", script], cwd=workspace, env=env, capture_output=True)
+            self.assertNotEqual(refused.returncode, 0)
+            self.assertIn(b"Unapproved provider provenance revision", refused.stderr)
+            self.assertNotIn(b"Initialized", refused.stdout)  # Policy rejects before any quarantine/fetch.
+            for revision in (LOCAL_SOURCE_REVISION, "0" * 40):
+                candidate = copy.deepcopy(original)
+                candidate["current_file_updates"][-1]["revision"] = revision
+                path.write_text(json.dumps(candidate))
+                refused = subprocess.run([sys.executable, "-B", "-c", script], cwd=workspace, env=env, capture_output=True)
+                self.assertNotEqual(refused.returncode, 0)
+                self.assertIn(b"Unapproved Root provenance revision", refused.stderr)
+                self.assertNotIn(b"Initialized", refused.stdout)
+
+    def test_reviewed_provenance_policy_rejects_wrong_roles(self) -> None:
+        original = json.loads((PLUGIN / "provenance.json").read_text())
+        for role, revision in (("source", PROVENANCE_BASELINE), ("baseline", LOCAL_SOURCE_REVISION)):
+            candidate = copy.deepcopy(original)
+            record = candidate["local_authored_updates"][0]
+            if role == "source":
+                old = record["revision"]
+                record["revision"] = revision
+                record["source_url"] = record["source_url"].replace(old, revision)
+                record["license"]["source_url"] = record["license"]["source_url"].replace(old, revision)
+            else:
+                record["baseline"]["revision"] = revision
+                record["baseline"]["blob"] = recorded_git_blob(revision, record["baseline"]["path"])
+            with self.subTest(role=role), self.assertRaisesRegex(ValueError, "Unapproved local provenance revision"):
+                validate_provenance_sources(candidate)
+        candidate = copy.deepcopy(original)
+        record = copy.deepcopy(candidate["current_file_updates"][1])
+        record["revision"] = candidate["current_file_updates"][-1]["revision"]
+        record["source_blob"] = recorded_git_blob(record["revision"], record["source_path"])
+        record["destination_blob"] = record["source_blob"]
+        candidate["current_file_updates"].append(record)
+        with self.assertRaisesRegex(ValueError, "Unapproved current update revision for source path"):
+            validate_provenance_sources(candidate)
 
     def test_recorded_git_blob_requires_commit_and_existing_blob(self) -> None:
         record = json.loads((PLUGIN / "provenance.json").read_text(encoding="utf-8"))["local_authored_updates"][0]

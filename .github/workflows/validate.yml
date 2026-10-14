@@ -40,6 +40,17 @@ jobs:
           import subprocess
           import tempfile
 
+          approved = {
+              'https://github.com/atrinik/agent-integrations.git': {
+                  'f723d04a095e8e8d44d54b5ca6a85475f2713912',
+                  '0401a87fe0e8f87bf7783e9d040d717d28afff23',
+                  '38a3f01939c67e5172e4a7eedd8f6330e9339bbd',
+              },
+              'https://github.com/atrinik/atrinik.git': {
+                  'a9661a2bd978107fe4e01e45b2e22fcd1e2d095c',
+                  '8b00b5b3b44f1230b5df97715b613a68150e5a68',
+              },
+          }
           repository = 'https://github.com/atrinik/agent-integrations.git'
           records = json.loads(Path('plugins/atrinik-development/provenance.json').read_text())['local_authored_updates']
           if not isinstance(records, list) or len(records) != 2:
@@ -65,6 +76,10 @@ jobs:
               if not isinstance(revision, str) or not re.fullmatch(r'[0-9a-f]{40}', revision):
                   raise ValueError('Expected full immutable Root revision')
               root_revisions.add(revision)
+          if not revisions <= approved['https://github.com/atrinik/agent-integrations.git']:
+              raise ValueError('Unapproved provider provenance revision')
+          if not root_revisions <= approved['https://github.com/atrinik/atrinik.git']:
+              raise ValueError('Unapproved Root provenance revision')
           env = {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_LAZY_FETCH': '1'}
           verify_env = {key: value for key, value in env.items() if not key.startswith('GIT_')}
           verify_env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull,
