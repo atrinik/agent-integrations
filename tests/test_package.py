@@ -43,21 +43,31 @@ IMPORTED_SKILLS = EXPECTED_SKILLS - CLASSIC_SKILLS
 MAX_IMPORTED_CATALOG_BYTES = 2_250
 MAX_IMPORTED_SKILL_BYTES = 62_500
 LINK = re.compile(r"\[[^]]+\]\(([^)]+)\)")
-LOCAL_UPDATE_PATHS = {
-    "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md",
-    "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md",
-}
 CURRENT_UPDATE_PATHS = {"docs/LINUX_EXECUTION.md", "docs/WINDOWS_GPU_PREFLIGHT.md"}
 PROVENANCE_BASELINE = "38a3f01939c67e5172e4a7eedd8f6330e9339bbd"
 PROVENANCE_PATH = "plugins/atrinik-development/provenance.json"
 LOCAL_SOURCE_REVISION = "f723d04a095e8e8d44d54b5ca6a85475f2713912"
 LOCAL_BASELINE_REVISION = "0401a87fe0e8f87bf7783e9d040d717d28afff23"
+GOVERNANCE_SOURCE_REVISION = "86ea8241c54d13cad38a5eb0928770e4c97156ab"
+GOVERNANCE_BASELINE_REVISION = "98196a538e77622ee2aa804b3d90c053d52a11d3"
+# Each locally authored path admits exactly one reviewed (source, baseline) role pair.
+LOCAL_UPDATE_ROLES = {
+    "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md":
+        (LOCAL_SOURCE_REVISION, LOCAL_BASELINE_REVISION),
+    "plugins/atrinik-development/skills/atrinik-multi-repo-workspace/SKILL.md":
+        (LOCAL_SOURCE_REVISION, LOCAL_BASELINE_REVISION),
+    "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md":
+        (GOVERNANCE_SOURCE_REVISION, GOVERNANCE_BASELINE_REVISION),
+}
+LOCAL_UPDATE_PATHS = set(LOCAL_UPDATE_ROLES)
 CURRENT_UPDATE_REVISIONS = {
     "docs/LINUX_EXECUTION.md": {"a9661a2bd978107fe4e01e45b2e22fcd1e2d095c", "8b00b5b3b44f1230b5df97715b613a68150e5a68"},
     "docs/WINDOWS_GPU_PREFLIGHT.md": {"a9661a2bd978107fe4e01e45b2e22fcd1e2d095c"},
 }
 APPROVED_PROVENANCE_REVISIONS = {
-    "https://github.com/atrinik/agent-integrations.git": {LOCAL_SOURCE_REVISION, LOCAL_BASELINE_REVISION, PROVENANCE_BASELINE},
+    "https://github.com/atrinik/agent-integrations.git": {
+        *(revision for roles in LOCAL_UPDATE_ROLES.values() for revision in roles), PROVENANCE_BASELINE,
+    },
     "https://github.com/atrinik/atrinik.git": set().union(*CURRENT_UPDATE_REVISIONS.values()),
 }
 LINK_TRANSFORMATION = "Retained package-relative links to the five packaged resources; replaced links outside the package with immutable source-revision URLs."
@@ -190,7 +200,7 @@ def validate_provenance_sources(provenance: dict) -> None:
                       baseline["revision"], baseline["blob"], license_record["blob"]):
             if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
                 raise ValueError("Nonimmutable Git identity")
-        if record["revision"] != LOCAL_SOURCE_REVISION or baseline["revision"] != LOCAL_BASELINE_REVISION:
+        if (record["revision"], baseline["revision"]) != LOCAL_UPDATE_ROLES[path]:
             raise ValueError("Unapproved local provenance revision for source or baseline role")
         prefix = f"https://github.com/atrinik/agent-integrations/blob/{record['revision']}/"
         if (record["source_path"] != path or baseline["path"] != path
@@ -268,7 +278,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(codex["name"], entry["name"])
         self.assertEqual(plugin["version"], codex["version"])
         self.assertEqual(codex["skills"], "./skills/")
-        self.assertEqual(plugin["version"], "1.0.1")
+        self.assertEqual(plugin["version"], "1.0.2")
         self.assertEqual(
             plugin["repository"],
             "https://github.com/atrinik/agent-integrations",
@@ -549,6 +559,18 @@ class PackageTests(unittest.TestCase):
                 record["baseline"]["revision"] = revision
                 record["baseline"]["blob"] = recorded_git_blob(revision, record["baseline"]["path"])
             with self.subTest(role=role), self.assertRaisesRegex(ValueError, "Unapproved local provenance revision"):
+                validate_provenance_sources(candidate)
+        # An approved revision from another path's role pair is still refused.
+        governance = next(index for index, record in enumerate(original["local_authored_updates"])
+                          if record["destination_path"].endswith("atrinik-github-governance/SKILL.md"))
+        for index, revision in ((0, GOVERNANCE_SOURCE_REVISION), (governance, LOCAL_SOURCE_REVISION)):
+            candidate = copy.deepcopy(original)
+            record = candidate["local_authored_updates"][index]
+            old = record["revision"]
+            record["revision"] = revision
+            record["source_url"] = record["source_url"].replace(old, revision)
+            record["license"]["source_url"] = record["license"]["source_url"].replace(old, revision)
+            with self.subTest(cross_role=index), self.assertRaisesRegex(ValueError, "Unapproved local provenance revision"):
                 validate_provenance_sources(candidate)
         candidate = copy.deepcopy(original)
         record = copy.deepcopy(candidate["current_file_updates"][1])
