@@ -266,8 +266,32 @@ class ImportedSkillContractTests(unittest.TestCase):
             self.assertIn("review and explicitly merge native PR stacks", description)
             self.assertIn("references/pr-stack-review-and-merge.md", body)
             self.assertIn("Review-only work is read-only", body)
-            self.assertIn("skip steps 3–6", body)
+            self.assertIn("skip steps 3–5", body)
+            self.assertNotIn("skip steps 3–6", body)
             self.assertNotIn("skip steps 2–5", body)
+            # The github-settings publisher, audit and Project sync are retired.
+            normalized_body = " ".join(body.split())
+            for marker in {
+                "publisher, audit and Project sync are retired",
+                "Never run its `bin/` scripts",
+                "from its current tree, an old checkout or a release",
+                "make it only if the task asks for it (step 4)",
+                "organization rulesets aimed at all repositories",
+                "only when the current task asks for that change",
+                "record the change in the same task",
+            }:
+                with self.subTest(marker=marker):
+                    self.assertIn(marker, normalized_body)
+            for stale in {"publisher plan", "github-settings/AGENTS.md", "before `--apply`",
+                          "tools its current `README.md` documents",
+                          "update the Actions allowlist"}:
+                with self.subTest(stale=stale):
+                    self.assertNotIn(stale, normalized_body)
+            for name in ("atrinik-issue-delivery/references/preparation.md",
+                         "atrinik-program-delivery/SKILL.md"):
+                with self.subTest(status_source=name):
+                    self.assertIn("`github-settings/config/planning.json`",
+                                  (SKILLS / name).read_text(encoding="utf-8"))
             self.assertIn("review a native PR stack", interface)
             self.assertIn("explicit user authority", interface)
     

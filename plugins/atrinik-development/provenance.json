@@ -341,6 +341,30 @@
         "Locally authored wording compression from the recorded baseline: shortened diagnostics, source routing, workspace selection and handoff prose by 120 bytes.",
         "Preserved every Markdown link and shell command block, and all ownership, authority, lease, cleanup, runtime, host-authentication and provenance conditions."
       ]
+    },
+    {
+      "repository": "https://github.com/atrinik/agent-integrations.git",
+      "revision": "86ea8241c54d13cad38a5eb0928770e4c97156ab",
+      "source_path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
+      "source_url": "https://github.com/atrinik/agent-integrations/blob/86ea8241c54d13cad38a5eb0928770e4c97156ab/plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
+      "source_blob": "c0a5c1798ebe690cb779ac2d3c5796f2523ddf8c",
+      "destination_path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
+      "destination_blob": "c0a5c1798ebe690cb779ac2d3c5796f2523ddf8c",
+      "baseline": {
+        "revision": "98196a538e77622ee2aa804b3d90c053d52a11d3",
+        "path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
+        "blob": "95cf8844f7e0770c3db68d0e25c4039270d37802"
+      },
+      "license": {
+        "spdx": "MIT",
+        "path": "LICENSE",
+        "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2",
+        "source_url": "https://github.com/atrinik/agent-integrations/blob/86ea8241c54d13cad38a5eb0928770e4c97156ab/LICENSE"
+      },
+      "transformations": [
+        "Locally authored update from the recorded baseline: the atrinik/github-settings publisher, audit and Project sync are retired; route settings work to that repository's current README.md and AGENTS.md, forbid its bin/ scripts from the current tree, old checkouts or releases, and describe task-authorized hand changes that are exported first, re-read live and recorded in the same task.",
+        "Corrected the PR-only step range to 3-5; made allowlist and ruleset changes from workflow edits task-authorized only; retained the stack contract, PR publication contract, links and authority boundaries."
+      ]
     }
   ]
 }
