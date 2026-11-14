@@ -8,3 +8,5 @@ updates:
       github-actions:
         patterns:
           - "*"
+    assignees:
+      - zoeyrose
