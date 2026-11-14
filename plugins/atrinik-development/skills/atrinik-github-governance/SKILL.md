@@ -15,10 +15,10 @@ description: Publish Atrinik PRs, govern GitHub policy, or review and explicitly
 3. For policy, settings, Actions, checks, or release governance, read the
    workspace guide and the current `README.md` and `AGENTS.md` of
    `atrinik/github-settings`, then compare them with the live GitHub API.
-   Its publisher, audit and Project sync are retired. Never run the old
-   `bin/` scripts from that repository's history, with or without `--apply`,
-   even where older text still describes them; use only tools its current
-   `README.md` documents.
+   Its publisher, audit and Project sync are retired. Never run its `bin/`
+   scripts (`publish*`, `audit`, `sync-project` and the rest), with or without
+   `--apply`, from its current tree, an old checkout or a release, even where
+   its `README.md` or `AGENTS.md` still describes them.
 4. Organization-wide rules live in organization rulesets aimed at all
    repositories, not lists of names; a required-check ruleset targets its one
    repository. Change a setting by hand under the owner's login only when the
@@ -41,9 +41,9 @@ repository commit-signing policy.
 
 ## Change policy coherently
 
-- Synchronize required workflow jobs with repository rulesets; when workflows
-  change, update the Actions allowlist, permissions, dependency pins, and
-  required aggregate status.
+- When workflows change, update their permissions and dependency pins, and
+  report any Actions allowlist, ruleset or required-check change they need;
+  make it only if the task asks for it (step 4).
 - Keep merge methods, semantic-release, Conventional Commit policy, visibility,
   default branches, and Codecov/OIDC policy consistent.
 - Use least-privilege permissions and policy-required immutable action refs.

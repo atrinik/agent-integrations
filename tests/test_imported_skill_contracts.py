@@ -273,14 +273,18 @@ class ImportedSkillContractTests(unittest.TestCase):
             normalized_body = " ".join(body.split())
             for marker in {
                 "publisher, audit and Project sync are retired",
-                "Never run the old `bin/` scripts from that repository's history",
+                "Never run its `bin/` scripts",
+                "from its current tree, an old checkout or a release",
+                "make it only if the task asks for it (step 4)",
                 "organization rulesets aimed at all repositories",
                 "only when the current task asks for that change",
                 "record the change in the same task",
             }:
                 with self.subTest(marker=marker):
                     self.assertIn(marker, normalized_body)
-            for stale in {"publisher plan", "github-settings/AGENTS.md", "before `--apply`"}:
+            for stale in {"publisher plan", "github-settings/AGENTS.md", "before `--apply`",
+                          "tools its current `README.md` documents",
+                          "update the Actions allowlist"}:
                 with self.subTest(stale=stale):
                     self.assertNotIn(stale, normalized_body)
             for name in ("atrinik-issue-delivery/references/preparation.md",
