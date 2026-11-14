@@ -11,12 +11,21 @@ description: Publish Atrinik PRs, govern GitHub policy, or review and explicitly
    follow [the stack contract](references/pr-stack-review-and-merge.md) in full;
    Review-only work is read-only and never grants merge authority.
 2. For PR-only work, read its repository's `AGENTS.md`, use **Publish pull
-   requests**, and skip steps 3–6.
+   requests**, and skip steps 3–5.
 3. For policy, settings, Actions, checks, or release governance, read the
-   workspace and `github-settings/AGENTS.md` guides. Compare configuration,
-   publisher, workflows, and history with the live GitHub API.
-4. Run the publisher plan before `--apply`; external changes and workflow
-   dispatch need explicit authorization.
+   workspace guide and the current `README.md` and `AGENTS.md` of
+   `atrinik/github-settings`, then compare them with the live GitHub API.
+   Its publisher, audit and Project sync are retired. Never run the old
+   `bin/` scripts from that repository's history, with or without `--apply`,
+   even where older text still describes them; use only tools its current
+   `README.md` documents.
+4. Organization-wide rules live in organization rulesets aimed at all
+   repositories, not lists of names; a required-check ruleset targets its one
+   repository. Change a setting by hand under the owner's login only when the
+   current task asks for that change; workflow dispatch also needs explicit
+   authorization. Export each object before the change, re-read it live
+   afterwards, and record the change in the same task where that `README.md`
+   says records live. Never record a setting for later application.
 5. Keep controls Team-plan compatible; document and review Enterprise-only
    migrations.
 
@@ -57,10 +66,11 @@ validation sections.
 
 ## Validate and hand off
 
-For policy changes, run JSON/shell validation, ShellCheck, actionlint, publisher
-plan mode, and `git diff --check`; inspect the plan before apply. For PR-only
-work, run repository validation and the rendered-view check.
+For settings changes, check each changed object against a fresh live read.
+For workflow changes, run actionlint, ShellCheck where shell changed, and
+`git diff --check`. For PR-only work, run repository validation and the
+rendered-view check.
 
-For policy, document affected repositories, required checks, plan/rollback
-steps, and unchanged live state. For PRs, record remote render verification.
-Use Conventional Commits.
+For policy, document affected repositories, required checks, the pre-change
+export used for rollback, and unchanged live state. For PRs, record remote
+render verification. Use Conventional Commits.

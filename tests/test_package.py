@@ -268,7 +268,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(codex["name"], entry["name"])
         self.assertEqual(plugin["version"], codex["version"])
         self.assertEqual(codex["skills"], "./skills/")
-        self.assertEqual(plugin["version"], "1.0.1")
+        self.assertEqual(plugin["version"], "1.0.2")
         self.assertEqual(
             plugin["repository"],
             "https://github.com/atrinik/agent-integrations",
