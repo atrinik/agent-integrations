@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "atrinik-development",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Reusable Atrinik development skills with portable public references.",
   "author": {
     "name": "Atrinik contributors",

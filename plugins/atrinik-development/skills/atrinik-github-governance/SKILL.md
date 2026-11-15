@@ -12,20 +12,29 @@ description: Publish Atrinik PRs, govern GitHub policy, or review and explicitly
    Review-only work is read-only and never grants merge authority.
 2. For PR-only work, read its repository's `AGENTS.md`, use **Publish pull
    requests**, and skip steps 3–5.
-3. For policy, settings, Actions, checks, or release governance, read the
-   workspace guide and the current `README.md` and `AGENTS.md` of
-   `atrinik/github-settings`, then compare them with the live GitHub API.
-   Its publisher, audit and Project sync are retired. Never run its `bin/`
-   scripts (`publish*`, `audit`, `sync-project` and the rest), with or without
-   `--apply`, from its current tree, an old checkout or a release, even where
-   its `README.md` or `AGENTS.md` still describes them.
+3. For policy, settings, rulesets, Actions policy, required checks, or release
+   governance, read the workspace guide and the current `README.md` and
+   `AGENTS.md` of `atrinik/github-settings`. Its publisher, audit and Project
+   sync are retired. Never run its `bin/` scripts (`publish*`, `audit`,
+   `sync-project` and the rest), with or without `--apply`, from its current
+   tree, an old checkout or a release, even where its `README.md` or
+   `AGENTS.md` still describes them.
 4. Organization-wide rules live in organization rulesets aimed at all
    repositories, not lists of names; a required-check ruleset targets its one
-   repository. Change a setting by hand under the owner's login only when the
-   current task asks for that change; workflow dispatch also needs explicit
-   authorization. Export each object before the change, re-read it live
-   afterwards, and record the change in the same task where that `README.md`
-   says records live. Never record a setting for later application.
+   repository. Before and after any settings change, run the read-only
+   settings check from a checkout of `atrinik/github-settings`:
+   `python3 check_settings.py baselines/atrinik.json` (exit 0 match, 1
+   differences, 2 only "could not verify", 3 could not run; see its
+   `README.md`). Report any difference the task did not cause and ask the
+   owner before you go on. Change a setting by hand under the owner's login
+   only when the current task asks for that change; workflow dispatch also
+   needs explicit authorization. The check never runs a fix; run a printed
+   fix command only when the task authorizes that exact change. Export each
+   object the change touches before you change it. Then record the change in
+   the same task: update `baselines/atrinik.json` for it and open a pull
+   request in `atrinik/github-settings` that quotes the check output and
+   explains each remaining line. Never record a setting for later
+   application.
 5. Keep controls Team-plan compatible; document and review Enterprise-only
    migrations.
 
@@ -66,11 +75,12 @@ validation sections.
 
 ## Validate and hand off
 
-For settings changes, check each changed object against a fresh live read.
+For settings changes, rerun the check after the change and after the baseline
+update; the baseline pull request quotes its final output.
 For workflow changes, run actionlint, ShellCheck where shell changed, and
 `git diff --check`. For PR-only work, run repository validation and the
 rendered-view check.
 
 For policy, document affected repositories, required checks, the pre-change
-export used for rollback, and unchanged live state. For PRs, record remote
-render verification. Use Conventional Commits.
+export used for rollback, the baseline pull request, and unchanged live state.
+For PRs, record remote render verification. Use Conventional Commits.

@@ -279,12 +279,22 @@ class ImportedSkillContractTests(unittest.TestCase):
                 "organization rulesets aimed at all repositories",
                 "only when the current task asks for that change",
                 "record the change in the same task",
+                # The read-only settings check replaces ad hoc live comparison.
+                "run the read-only settings check from a checkout of `atrinik/github-settings`",
+                "`python3 check_settings.py baselines/atrinik.json`",
+                "Before and after any settings change",
+                "Report any difference the task did not cause",
+                "only when the task authorizes that exact change",
+                "update `baselines/atrinik.json` for it and open a pull request in `atrinik/github-settings`",
+                "quotes the check output and explains each remaining line",
+                "rerun the check after the change and after the baseline update",
             }:
                 with self.subTest(marker=marker):
                     self.assertIn(marker, normalized_body)
             for stale in {"publisher plan", "github-settings/AGENTS.md", "before `--apply`",
                           "tools its current `README.md` documents",
-                          "update the Actions allowlist"}:
+                          "update the Actions allowlist", "compare them with the live GitHub API",
+                          "against a fresh live read"}:
                 with self.subTest(stale=stale):
                     self.assertNotIn(stale, normalized_body)
             for name in ("atrinik-issue-delivery/references/preparation.md",
