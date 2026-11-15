@@ -344,26 +344,26 @@
     },
     {
       "repository": "https://github.com/atrinik/agent-integrations.git",
-      "revision": "86ea8241c54d13cad38a5eb0928770e4c97156ab",
+      "revision": "c28a11d797435e998adfe213742d85490d9d9c55",
       "source_path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
-      "source_url": "https://github.com/atrinik/agent-integrations/blob/86ea8241c54d13cad38a5eb0928770e4c97156ab/plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
-      "source_blob": "c0a5c1798ebe690cb779ac2d3c5796f2523ddf8c",
+      "source_url": "https://github.com/atrinik/agent-integrations/blob/c28a11d797435e998adfe213742d85490d9d9c55/plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
+      "source_blob": "b17f8bd77718cee6d30e14a736b18a81f0127959",
       "destination_path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
-      "destination_blob": "c0a5c1798ebe690cb779ac2d3c5796f2523ddf8c",
+      "destination_blob": "b17f8bd77718cee6d30e14a736b18a81f0127959",
       "baseline": {
-        "revision": "98196a538e77622ee2aa804b3d90c053d52a11d3",
+        "revision": "692c9a5e09b3b4be697fad500af6b7596913b078",
         "path": "plugins/atrinik-development/skills/atrinik-github-governance/SKILL.md",
-        "blob": "95cf8844f7e0770c3db68d0e25c4039270d37802"
+        "blob": "c0a5c1798ebe690cb779ac2d3c5796f2523ddf8c"
       },
       "license": {
         "spdx": "MIT",
         "path": "LICENSE",
         "blob": "ae279af2f927edd5ab41f7fa95c72d2d99010de2",
-        "source_url": "https://github.com/atrinik/agent-integrations/blob/86ea8241c54d13cad38a5eb0928770e4c97156ab/LICENSE"
+        "source_url": "https://github.com/atrinik/agent-integrations/blob/c28a11d797435e998adfe213742d85490d9d9c55/LICENSE"
       },
       "transformations": [
-        "Locally authored update from the recorded baseline: the atrinik/github-settings publisher, audit and Project sync are retired; route settings work to that repository's current README.md and AGENTS.md, forbid its bin/ scripts from the current tree, old checkouts or releases, and describe task-authorized hand changes that are exported first, re-read live and recorded in the same task.",
-        "Corrected the PR-only step range to 3-5; made allowlist and ruleset changes from workflow edits task-authorized only; retained the stack contract, PR publication contract, links and authority boundaries."
+        "Locally authored update from the recorded baseline, which carries the earlier update that retired the atrinik/github-settings publisher, audit and Project sync and banned its bin/ scripts from the current tree, old checkouts or releases.",
+        "Named the read-only check_settings.py in atrinik/github-settings for settings, ruleset, Actions policy and required-check work: its command, exit codes, running it before and after a change, stopping on differences the task did not cause, running a printed fix only when the task authorizes that exact change, and recording the change in a baseline pull request there; removed the vague live GitHub API comparison and retained the stack contract, PR publication contract, links and authority boundaries."
       ]
     }
   ]

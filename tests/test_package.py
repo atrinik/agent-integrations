@@ -48,8 +48,8 @@ PROVENANCE_BASELINE = "38a3f01939c67e5172e4a7eedd8f6330e9339bbd"
 PROVENANCE_PATH = "plugins/atrinik-development/provenance.json"
 LOCAL_SOURCE_REVISION = "f723d04a095e8e8d44d54b5ca6a85475f2713912"
 LOCAL_BASELINE_REVISION = "0401a87fe0e8f87bf7783e9d040d717d28afff23"
-GOVERNANCE_SOURCE_REVISION = "86ea8241c54d13cad38a5eb0928770e4c97156ab"
-GOVERNANCE_BASELINE_REVISION = "98196a538e77622ee2aa804b3d90c053d52a11d3"
+GOVERNANCE_SOURCE_REVISION = "c28a11d797435e998adfe213742d85490d9d9c55"
+GOVERNANCE_BASELINE_REVISION = "692c9a5e09b3b4be697fad500af6b7596913b078"
 # Each locally authored path admits exactly one reviewed (source, baseline) role pair.
 LOCAL_UPDATE_ROLES = {
     "plugins/atrinik-development/skills/atrinik-linux-gpu-qualification/references/linux-vulkan.md":
@@ -278,7 +278,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(codex["name"], entry["name"])
         self.assertEqual(plugin["version"], codex["version"])
         self.assertEqual(codex["skills"], "./skills/")
-        self.assertEqual(plugin["version"], "1.0.2")
+        self.assertEqual(plugin["version"], "1.0.3")
         self.assertEqual(
             plugin["repository"],
             "https://github.com/atrinik/agent-integrations",

@@ -55,7 +55,7 @@ alternates, so a cached local commit cannot mask an unavailable remote object.
 Remote availability alone does not establish reviewed history. Source-controlled
 policy admits only the independently reviewed immutable provider source/baseline
 pairs `f723d04`/`0401a87` (Linux qualification and workspace guidance) and
-`86ea824`/`98196a5` (GitHub governance guidance), anchor `38a3f01`, and wrapper
+`c28a11d`/`692c9a5` (GitHub governance guidance), anchor `38a3f01`, and wrapper
 updates `a9661a2` and `8b00b5b`; the executable policy uses full commit IDs. CI
 rejects other IDs before fetching. Offline validation additionally restricts each
 approved ID to its reviewed role and source paths. Adding an ID or changing its role requires an independently
